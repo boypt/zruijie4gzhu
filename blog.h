@@ -1,24 +1,33 @@
+/*******************************************************************************\
+ * RuijieClient -- a CLI based Ruijie Client authentication modified from mystar *
+ *                                                                               *
+ * Copyright (C) Gong Han, Chen Tingjun                                          *
+ \*******************************************************************************/
+
 /*
- * =====================================================================================
+ * This program is modified from MyStar, the original author is netxray@byhh.
  *
- *       Filename:  blog.c
+ * Many thanks to netxray@byhh
  *
- *    Description:  
+ * AUTHORS:
+ *   Gong Han  <gong AT fedoraproject.org> from CSE@FJNU CN
+ *   Chen Tingjun <chentingjun AT gmail.com> from POET@FJNU CN
  *
- *        Version:  1.0
- *        Created:  07/06/2009 06:24:17 PM
- *       Revision:  none
- *       Compiler:  gcc
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation; either
+ * version 2 of the License, or (at your option) any later version.
  *
- *         Author:  BOYPT (PT), pentie@gmail.com
- *        Company:  http://apt-blog.co.cc
- *       
- *       本文件算法和数据修改自MyStar，原作者为netxray@byhh，
- *       保留原函数命名规则。 Alog，Blog算法函数已由BOYPT重写。
- * =====================================================================================
+ * This library is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.	 See the GNU
+ * Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with this library; if not, write to the
+ * Free Software Foundation, Inc., 59 Temple Place - Suite 330,
+ * Boston, MA 02111-1307, USA.
  */
-
-
 
 #ifndef BLOG_H
 #define BLOG_H
@@ -26,25 +35,20 @@
 /* The Blog algorithm is mainly de-assembled out by SnowWings.        */
 /* We should thank him very much, because the algorithm is crucial.  */
 
-#include    <sys/types.h>
-#include    <string.h>
-#include	<stdint.h>
-#include	"commondef.h"
+#include <sys/types.h>
+#include <string.h>
+#include <pcap.h>
 
+
+//#include "myerr.h"
+void
+InitializeBlog(const bpf_u_int32 m_ip, const bpf_u_int32 m_netmask,
+    const bpf_u_int32 m_netgate, const bpf_u_int32 m_dns1, const int m_dhcpmode);
 
 void
-InitializeBlog(const uint8_t *RuijieExtra);
+FillNetParamater(unsigned char ForFill[]);
 
-uint8_t
-Alog(uint8_t val);
-
-void
-Blog(uint8_t circleCheck[2]);
-
-uint32_t
-ruijie_byte_to_int32 (const uint8_t *array);
-
-void
-ruijie_int32_to_byte (uint8_t *to_array, uint32_t host_val);
+unsigned char
+Alog(unsigned char BForAlog);
 
 #endif

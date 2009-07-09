@@ -1,28 +1,44 @@
+/*******************************************************************************\
+ * RuijieClient -- a CLI based Ruijie Client authentication modified from mystar *
+ *                                                                               *
+ * Copyright (C) Gong Han, Chen Tingjun                                          *
+ \*******************************************************************************/
+
 /*
- * =====================================================================================
+ * This program is modified from MyStar, the original author is netxray@byhh.
  *
- *       Filename:  blog.c
+ * Many thanks to netxray@byhh
  *
- *    Description:  
+ * AUTHORS:
+ *   Gong Han  <gong AT fedoraproject.org> from CSE@FJNU CN
+ *   Chen Tingjun <chentingjun AT gmail.com> from POET@FJNU CN
  *
- *        Version:  1.0
- *        Created:  07/06/2009 06:24:17 PM
- *       Revision:  none
- *       Compiler:  gcc
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation; either
+ * version 2 of the License, or (at your option) any later version.
  *
- *         Author:  BOYPT (PT), pentie@gmail.com
- *        Company:  http://apt-blog.co.cc
- *       
- *       本文件算法和数据修改自MyStar，原作者为netxray@byhh，保留原函数命名规则。
- *       Alog，Blog算法函数由BOYPT重写
- * =====================================================================================
+ * This library is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.	 See the GNU
+ * Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with this library; if not, write to the
+ * Free Software Foundation, Inc., 59 Temple Place - Suite 330,
+ * Boston, MA 02111-1307, USA.
  */
 
 #include "blog.h"
 
-int           blogIsInitialized = 0;
-uint8_t       sCircleBase[0x15];
-const uint8_t Table[]={
+static int blogIsInitialized = 0;
+static unsigned char m_IP[4];
+static unsigned char m_NetMask[4];
+static unsigned char m_NetGate[4];
+static unsigned char m_DNS1[4];
+static unsigned char circleCheck[2]; //那两个鬼值
+
+static unsigned char Table[]={
   0x00,0x00,0x21,0x10,0x42,0x20,0x63,0x30,0x84,0x40,0xA5,0x50,0xC6,0x60,0xE7,0x70,
   0x08,0x81,0x29,0x91,0x4A,0xA1,0x6B,0xB1,0x8C,0xC1,0xAD,0xD1,0xCE,0xE1,0xEF,0xF1,
   0x31,0x12,0x10,0x02,0x73,0x32,0x52,0x22,0xB5,0x52,0x94,0x42,0xF7,0x72,0xD6,0x62,
@@ -56,23 +72,64 @@ const uint8_t Table[]={
   0x1F,0xEF,0x3E,0xFF,0x5D,0xCF,0x7C,0xDF,0x9B,0xAF,0xBA,0xBF,0xD9,0x8F,0xF8,0x9F,
   0x17,0x6E,0x36,0x7E,0x55,0x4E,0x74,0x5E,0x93,0x2E,0xB2,0x3E,0xD1,0x0E,0xF0,0x1E};
 
-
-/* 
- * ===  FUNCTION  ======================================================================
- *         Name:  InitializeBlog
- *  Description:  按原始序列复制RuijieExtra结构的前0x15个字节到缓冲区，
- *  由Blog计算其环校验值
- * =====================================================================================
- */
-void
-InitializeBlog(const uint8_t *RuijieExtra)
+static unsigned char sCircleBase[0x15]=
 {
-    int i;
-    for (i = 0; i < 0x15; ++i) {
-        sCircleBase[i] = Alog (RuijieExtra[i]);
-    }
-    blogIsInitialized = 1;
+  0x00,0x00,0x13,0x11,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,
+  0x00,0x00,0x00,0x00,0x00
+};
+
+static void
+Blog(void);
+
+//configure the 4 parameters Blog() and FillNetParameter() need.
+void
+InitializeBlog(const bpf_u_int32 m_ip, const bpf_u_int32 m_netmask,
+    const bpf_u_int32 m_netgate, const bpf_u_int32 m_dns1, const int m_dhcpmode)
+{
+  memcpy(m_IP, &m_ip, 4);
+  memcpy(m_NetMask, &m_netmask, 4);
+  memcpy(m_NetGate, &m_netgate, 4);
+  memcpy(m_DNS1, &m_dns1, 4);
+
+
+
+  if (m_dhcpmode > 0)//Dhcp Enabled
+    sCircleBase[0x04] = 0x01;
+
+  Blog();
+
+  blogIsInitialized = 1;
 }
+
+//Fill in some additional information  Ruijie Corp. required.
+//You should call InitializeBlog() before calling this function.
+void
+FillNetParamater(unsigned char ForFill[])
+{
+//  if (blogIsInitialized == 0)
+//    err_quit("Blog algorithm has not been initialised yet \n");
+//
+  ForFill[0] = Alog(m_IP[0]);
+  ForFill[1] = Alog(m_IP[1]);
+  ForFill[2] = Alog(m_IP[2]);
+  ForFill[3] = Alog(m_IP[3]);
+  ForFill[4] = Alog(m_NetMask[0]);
+  ForFill[5] = Alog(m_NetMask[1]);
+  ForFill[6] = Alog(m_NetMask[2]);
+  ForFill[7] = Alog(m_NetMask[3]);
+  ForFill[8] = Alog(m_NetGate[0]);
+  ForFill[9] = Alog(m_NetGate[1]);
+  ForFill[10] = Alog(m_NetGate[2]);
+  ForFill[11] = Alog(m_NetGate[3]);
+  ForFill[12] = Alog(m_DNS1[0]);
+  ForFill[13] = Alog(m_DNS1[1]);
+  ForFill[14] = Alog(m_DNS1[2]);
+  ForFill[15] = Alog(m_DNS1[3]);
+  ForFill[16] = Alog(circleCheck[0]);
+  ForFill[17] = Alog(circleCheck[1]);
+}
+
+//A transformation of one-byte-for-one-byte
 
 /* 
  * ===  FUNCTION  ======================================================================
@@ -81,8 +138,8 @@ InitializeBlog(const uint8_t *RuijieExtra)
  *  REWRITTEN BY PT. 
  * =====================================================================================
  */
-uint8_t
-Alog(uint8_t val)
+unsigned char
+Alog(unsigned char val)
 {
     int i;
     u_char result = 0;
@@ -92,47 +149,47 @@ Alog(uint8_t val)
     return ~result;
 }
 
-/* 
- * ===  FUNCTION  ======================================================================
- *         Name:  Blog
- *  Description:  Calculate circle check sum.
- *  REWRITTEN BY PT. 
- * =====================================================================================
- */
-void
-Blog(uint8_t circleCheck[2])
+//那帮家伙们，单靠这个算法就想区别实达客户端和非实达客户端 -_- !!
+//The only use of function Blog() is to work out circleCheck[2],
+//with and only with the help of 4 parameters----m_IP, m_NetMask, m_NetGate, m_DNS1
+static void
+Blog(void)
 {
-    if (!blogIsInitialized)
-        return;
-    uint8_t h_byte = 0, l_byte = 0;
-    int i;
-    for (i = 0; i < 0x15; ++i) {
-        uint8_t index = h_byte ^ sCircleBase[i];
-        h_byte = Table[index * 2 + 1] ^ l_byte;
-        l_byte = Table[index * 2];
-    }
-    circleCheck[0] = h_byte;
-    circleCheck[1] = l_byte;
-}
+  int iCircle = 0x15;
+  int i, ax = 0, bx = 0, dx = 0;
 
-uint32_t
-ruijie_byte_to_int32 (const uint8_t *array)
-{
-    BYTEArray val;
-    int i;
-    for (i = 0; i < 4; ++i) {
-        val.byte_value[i] = Alog (array[i]);
-    }
-    return val.int_value;
-}
+  sCircleBase[0x05] = m_IP[0];
+  sCircleBase[0x06] = m_IP[1];
+  sCircleBase[0x07] = m_IP[2];
+  sCircleBase[0x08] = m_IP[3];
+  sCircleBase[0x09] = m_NetMask[0];
+  sCircleBase[0x0a] = m_NetMask[1];
+  sCircleBase[0x0b] = m_NetMask[2];
+  sCircleBase[0x0c] = m_NetMask[3];
+  sCircleBase[0x0d] = m_NetGate[0];
+  sCircleBase[0x0e] = m_NetGate[1];
+  sCircleBase[0x0f] = m_NetGate[2];
+  sCircleBase[0x10] = m_NetGate[3];
+  sCircleBase[0x11] = m_DNS1[0];
+  sCircleBase[0x12] = m_DNS1[1];
+  sCircleBase[0x13] = m_DNS1[2];
+  sCircleBase[0x14] = m_DNS1[3];
 
-void
-ruijie_int32_to_byte (uint8_t *to_array, uint32_t i_val)
-{
-    BYTEArray val;
-    val.int_value = i_val;
-    int i;
-    for (i = 0; i < 4; ++i) {
-        to_array[i] = Alog (val.byte_value[i]);
+  for (i = 0; i < iCircle; i++)
+    {
+      dx = ax;
+      bx = 0;
+      bx = (bx & 0xff00) | sCircleBase[i]; // add "( )" by cdx
+      dx &= 0xffff;
+      dx >>= 8;
+      dx ^= bx;
+      bx = 0;
+      bx &= 0x00ff;
+      bx |= (ax & 0xff) << 8;
+
+      ax = Table[dx * 2] | Table[dx * 2 + 1] << 8;
+      ax ^= bx;
     }
+  circleCheck[0] = (unsigned char) ((ax & 0xff00) >> 8);
+  circleCheck[1] = (unsigned char) (ax & 0x00ff);
 }
