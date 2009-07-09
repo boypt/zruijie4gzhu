@@ -1,0 +1,23 @@
+#!/bin/bash
+USERNAME="user"
+PASSWORD="pass"
+
+notify(){
+    notify-send "${1}";
+    if [ $? -eq 127 ]; then
+        echo "\`notify-send' not installed."
+        echo "$1"
+    fi
+}
+
+log="`zruijie -u "$USERNAME" -p "$PASSWORD" --dhcp -b "$@"|sed '/^>>Account/{N;s/\n//}'`"
+#log="`cat zrj.txt|sed '/^>>Account/{N;s/\n//}'`"
+echo "$log" |
+    while read line; do
+        if echo "$line" | grep -q '^&&Info'; then
+            echo "$line"
+        elif echo "$line" | grep -q '^>>Server\|^>>Account'; then
+            notify "${line##>>}"
+        fi
+    done
+exit 0
