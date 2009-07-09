@@ -38,8 +38,6 @@ pthread_t   exit_waiter_id;
 int         dhcp_on = 0;               /* DHCP 模式标记 */
 int         background = 0;            /* 后台运行标记  */
 int         exit_flag = 0;
-//int         log_flag = 0;
-//int         quiet_flag = 0;
 char        *dev = NULL;               /* 连接的设备名 */
 char        *username = NULL;          
 char        *password = NULL;
@@ -494,8 +492,7 @@ init_frames()
  *  Description:  显示信息
  * =====================================================================================
  */
-void 
-show_local_info ()
+void show_local_info ()
 {
     char    buf[32];
     printf("##### zRuijie for GZHU ver. %s ######\n", ZRJ_VER);

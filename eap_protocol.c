@@ -260,30 +260,6 @@ get_md5_digest(const char* str, size_t len)
 
 /* 
  * ===  FUNCTION  ======================================================================
- *         Name:  code_convert
- *  Description:  字符串编码转换
- * =====================================================================================
- */
-int 
-code_convert(char *from_charset, char *to_charset,
-             char *inbuf, size_t inlen, char *outbuf, size_t outlen)
-{
-    iconv_t cd;
-
-    cd = iconv_open(to_charset,from_charset);
-
-    if (cd==0) 
-      return -1;
-    memset(outbuf,0,outlen);
-
-    if (iconv (cd, &inbuf, &inlen, &outbuf, &outlen)==-1) 
-      return -1;
-    iconv_close(cd);
-    return 0;
-}
-
-/* 
- * ===  FUNCTION  ======================================================================
  *         Name:  print_server_info
  *  Description:  提取中文信息并打印输出
  * =====================================================================================
@@ -294,7 +270,14 @@ print_server_info (const uint8_t *packet, u_int packetlength,
 {
     char            msg_buf[1024];
     size_t          msg_len;
-    char            *msg;
+    size_t          buf_len = 1024;
+    iconv_t         cd;
+    char            *outbuf = msg_buf;
+    char            *inbuf;
+
+    cd = iconv_open("utf-8", "gb2312");
+    if (cd == 0) 
+        goto ENDS;
 
     if (pack_type == RUIJIE_EAPOL_MSG)
         goto RUIJIE_MSG;
@@ -302,36 +285,40 @@ print_server_info (const uint8_t *packet, u_int packetlength,
     /* success和failure报文系统信息的固定位置 */
     msg_len = ntohs(*(uint16_t*)(packet + 0x1a));
     if (msg_len < 3)
-        return;
-    msg = (char*)(packet + 0x1c);
-    code_convert ("gb2312", "utf-8", 
-                msg, msg_len,
-                msg_buf, 1024);
-    fprintf (stdout, ">>Server Message: %s\n", msg_buf);
-//    fflush (stderr);
+        goto ENDS;
+    inbuf = (char*)(packet + 0x1c);
+    memset (msg_buf, 0, buf_len);
+    if (iconv (cd, &inbuf, &msg_len,
+                        &outbuf, &buf_len) == -1) 
+       goto ENDS;
+    fprintf (stderr, ">>Server Message: %s\n", msg_buf);
 
     if (packetlength < 0x110)
-        return;
+        goto ENDS;
 
     /* success报文关于用户账户信息的位置 */
     msg_len = *(uint8_t*)(packet + 0x114);
-    msg = (char*)(packet + 0x115);
-    code_convert ("gb2312", "utf-8", 
-                msg, msg_len,
-                msg_buf, 1024);
-    fprintf (stdout, ">>Account Info: %s\n", msg_buf);
-//    fflush (stderr);
-    return;
+    inbuf = (char*)(packet + 0x115);
+    memset (msg_buf, 0, buf_len);
+    if (iconv (cd, &inbuf, &msg_len, 
+                        &outbuf, &buf_len) == -1) 
+       goto ENDS;
+    fprintf (stderr, ">>Account Info: %s\n", msg_buf);
+    goto ENDS;
     
     /* 锐捷的通知报文 */
 RUIJIE_MSG:;
-    msg = (char*)(packet + 0x1b);
-    msg_len = strlen (msg);
-    code_convert ("gb2312", "utf-8", 
-                msg, msg_len,
-                msg_buf, 1024);
+    inbuf = (char*)(packet + 0x1b);
+    msg_len = strlen (inbuf);
+    memset (msg_buf, 0, buf_len);
+    if (iconv (cd, &inbuf, &msg_len, 
+                        &outbuf, &buf_len) == -1) 
+       goto ENDS;
+    fprintf (stderr, ">>Manager Notification: %s\n", msg_buf);
 
-    fprintf (stdout, ">>Manager Notification: %s\n", msg_buf);
-//    fflush (stderr);
+ENDS:;
+    iconv_close (cd);
+    return;
 }
+
 

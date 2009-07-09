@@ -55,9 +55,9 @@ flock_reg ()
     }
  
     //把pid写入锁文件
-    assert (0 == ftruncate (lockfile, 0) );    
+    ftruncate (lockfile, 0);    
     sprintf (buf, "%ld", (long)getpid());
-    assert (-1 != write (lockfile, buf, strlen(buf) + 1));
+    write (lockfile, buf, strlen(buf) + 1);
 }
 
 
@@ -74,15 +74,13 @@ daemon_init(void)
 		exit(0);
     }
 	setsid();		/* become session leader */
-	assert (0 == chdir("/tmp"));		/* change working directory */
+	chdir("/tmp");		/* change working directory */
 	umask(0);		/* clear our file mode creation mask */
     flock_reg ();
-
     fd0 = open ("/dev/null", O_RDWR);
+    dup2 (fd0, STDOUT_FILENO);/* redirect stdout/in to null*/
     dup2 (fd0, STDIN_FILENO);
-    dup2 (fd0, STDERR_FILENO);
-    dup2 (fd0, STDOUT_FILENO);
-    close (fd0);
+    close(fd0);
 }
 
 
@@ -122,28 +120,6 @@ program_running_check()
     return fl.l_pid;
 }
 
-//void
-//io_redirect ()
-//{
-//    extern  int  log_flag;
-//    extern  int  quiet_flag;
-//    int     fd0;
-//    
-//    /* redirect stdout/in to null*/
-//    fd0 = open ("/dev/null", O_RDWR);
-//    dup2 (fd0, STDIN_FILENO);
-//
-//    if (quiet_flag) {
-//        dup2 (fd0, STDOUT_FILENO);
-//        if (log_flag) {
-//            stderr = freopen ("/tmp/zruijie_msg", "w", stderr);    
-//        }
-//        else
-//            dup2 (fd0, STDERR_FILENO);
-//    }
-//    close(fd0);
-//}
-
 void
 show_usage()
 {
@@ -177,9 +153,6 @@ show_usage()
             "\t                      Affacts only when both promopted.\n\n"
 
             "\t-b, --background      Program fork as daemon after authentication.\n\n"
-            "\t--quiet              Leave stdout alone.\n"
-            "\t--log                 Log Server Messages to file `/tmp/zruijie_msg'\n"
-            "\t                      Affetcs only with --quiet.\n\n"
 
             "\t--ver                 Specify a client version. \n"
             "\t                      Default is `3.50'.\n\n"
@@ -208,8 +181,6 @@ void init_arguments(int *argc, char ***argv)
     extern int         dhcp_on;               /* DHCP 模式标记 */
     extern int         background;            /* 后台运行标记  */
     extern int         exit_flag;
-//    extern int         log_flag;
-//    extern int         quiet_flag;
     extern char        *dev;               /* 连接的设备名 */
     extern char        *username;          
     extern char        *password;
@@ -224,8 +195,6 @@ void init_arguments(int *argc, char ***argv)
         {"help",        no_argument,        0,              'h'},
         {"background",  no_argument,        &background,    1},
         {"dhcp",        no_argument,        &dhcp_on,       1},
-//        {"log",         no_argument,        &log_flag,      1},
-//        {"quiet",      no_argument,         &quiet_flag,   1},
         {"device",      required_argument,  0,              2},
         {"ver",         required_argument,  0,              3},
         {"username",    required_argument,  0,              'u'},
@@ -283,8 +252,7 @@ void init_arguments(int *argc, char ***argv)
                 exit(EXIT_SUCCESS);
                 break;
             case '?':
-                if (optopt == 'u' || optopt == 'p'||
-                        optopt == 'g'|| optopt == 'd')
+                if (optopt == 'u' || optopt == 'p'|| optopt == 'g'|| optopt == 'd')
                     fprintf (stderr, "Option -%c requires an argument.\n", optopt);
                 exit(EXIT_FAILURE);
                 break;
@@ -303,7 +271,7 @@ signal_interrupted (int signo)
     if (exit_flag)
         exit (EXIT_SUCCESS);
     exit_flag = 1;
-    fprintf(stdout,"\n&&Info: Interrupted. \n");
+    fprintf(stdout,"\n&&Info: USER Interrupted. \n");
     send_eap_packet(EAPOL_LOGOFF);
 }
 
@@ -324,10 +292,7 @@ thread_wait_exit (void *arg)
 
 int main(int argc, char **argv)
 {
-    int ins_pid;
-
     init_arguments (&argc, &argv);
-
     //打开锁文件
     lockfile = open (LOCKFILE, O_RDWR | O_CREAT , LOCKMODE);
     if (lockfile < 0){
@@ -335,12 +300,13 @@ int main(int argc, char **argv)
         exit(1);
     }
 
+    int ins_pid;
     if ( (ins_pid = program_running_check ()) ) {
-        fprintf(stderr,"@@ERROR: zRuijie Already "
+        fprintf(stderr,"@@ERROR: zruijie Already "
                             "Running with PID %d\n", ins_pid);
         exit(EXIT_FAILURE);
     }
-//    io_redirect ();
+
     init_info();
     init_device();
     init_frames ();
@@ -350,6 +316,7 @@ int main(int argc, char **argv)
     show_local_info();
 
     send_eap_packet (EAPOL_START);
+
 	pcap_loop (handle, -1, get_packet, NULL);   /* main loop */
     pcap_close (handle);
     return 0;

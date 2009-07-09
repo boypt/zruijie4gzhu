@@ -7,22 +7,15 @@ then
     exit 1
 fi
 
-if [ $# -eq 1 ]
-then
-    INSTALL_PATH=$1
-fi
-
 if [[ -e 'zruijie' && -e 'runruijie' ]]
 then
-    echo $'\n#### Files intalling to '$INSTALL_PATH$' ####\n'
-    install -v -m 4755 -o root zruijie $INSTALL_PATH
-    install -v -m 0755 -o root runruijie $INSTALL_PATH
-    echo $'\n#### Installation Done. ####\n'
+    install -m 4755 -o root zruijie $INSTALL_PATH
+    install -m 0755 -o root runruijie $INSTALL_PATH
 else
-    echo $'\n#### Execute files `zruijie\' or `runruijie\' NOT Found. ####\n'
-    echo $'     Did you forget `make\'?\n\n'
+    echo "Execute files \`zruijie' or \`runruijie' NOT Found."
+    echo "Forgot run \`make'?"
     exit 1
 fi
 
-exit 0
+echo "####Installation Done.####"
 

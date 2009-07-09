@@ -181,7 +181,7 @@ endef
 # ------------  remove generated files  ----------------------------------------
 # ------------  remove hidden backup files  ------------------------------------
 clean:
-								-rm -v  $(EXECUTABLE) $(OBJECTS) $(PREREQUISITES) *~
+								-rm  --force  $(EXECUTABLE) $(OBJECTS) $(PREREQUISITES) *~
 
 # ------------ tarball generation ----------------------------------------------
 tarball:
@@ -197,13 +197,6 @@ tarball:
 zip:
 					@lokaldir=`pwd`; lokaldir=$${lokaldir##*/}; \
 					zip -r  $$lokaldir.zip * -x $(ZIP_EXCLUDE)
-
-install: $(EXECUTABLE)
-				@./install /usr/local/bin
-
-uninstall:
-				-rm /usr/local/bin/$(EXECUTABLE) /usr/local/bin/runruijie
-
 
 .PHONY: clean tarball zip
 
