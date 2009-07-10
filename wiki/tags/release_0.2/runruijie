@@ -1,3 +1,0 @@
-#!/bin/bash
-/usr/bin/zruijie -u username -p password --dhcp -b "$@"
-exit 0
