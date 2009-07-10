@@ -122,28 +122,6 @@ program_running_check()
     return fl.l_pid;
 }
 
-//void
-//io_redirect ()
-//{
-//    extern  int  log_flag;
-//    extern  int  quiet_flag;
-//    int     fd0;
-//    
-//    /* redirect stdout/in to null*/
-//    fd0 = open ("/dev/null", O_RDWR);
-//    dup2 (fd0, STDIN_FILENO);
-//
-//    if (quiet_flag) {
-//        dup2 (fd0, STDOUT_FILENO);
-//        if (log_flag) {
-//            stderr = freopen ("/tmp/zruijie_msg", "w", stderr);    
-//        }
-//        else
-//            dup2 (fd0, STDERR_FILENO);
-//    }
-//    close(fd0);
-//}
-
 void
 show_usage()
 {
@@ -177,9 +155,6 @@ show_usage()
             "\t                      Affacts only when both promopted.\n\n"
 
             "\t-b, --background      Program fork as daemon after authentication.\n\n"
-            "\t--quiet              Leave stdout alone.\n"
-            "\t--log                 Log Server Messages to file `/tmp/zruijie_msg'\n"
-            "\t                      Affetcs only with --quiet.\n\n"
 
             "\t--ver                 Specify a client version. \n"
             "\t                      Default is `3.50'.\n\n"
@@ -208,8 +183,6 @@ void init_arguments(int *argc, char ***argv)
     extern int         dhcp_on;               /* DHCP 模式标记 */
     extern int         background;            /* 后台运行标记  */
     extern int         exit_flag;
-//    extern int         log_flag;
-//    extern int         quiet_flag;
     extern char        *dev;               /* 连接的设备名 */
     extern char        *username;          
     extern char        *password;
@@ -224,8 +197,6 @@ void init_arguments(int *argc, char ***argv)
         {"help",        no_argument,        0,              'h'},
         {"background",  no_argument,        &background,    1},
         {"dhcp",        no_argument,        &dhcp_on,       1},
-//        {"log",         no_argument,        &log_flag,      1},
-//        {"quiet",      no_argument,         &quiet_flag,   1},
         {"device",      required_argument,  0,              2},
         {"ver",         required_argument,  0,              3},
         {"username",    required_argument,  0,              'u'},
@@ -340,7 +311,6 @@ int main(int argc, char **argv)
                             "Running with PID %d\n", ins_pid);
         exit(EXIT_FAILURE);
     }
-//    io_redirect ();
     init_info();
     init_device();
     init_frames ();

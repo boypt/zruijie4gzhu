@@ -3,7 +3,7 @@ USERNAME="user"
 PASSWORD="pass"
 
 notify(){
-    notify-send "${1}";
+    notify-send "$1";
     if [ $? -eq 127 ]; then
         echo "\`notify-send' not installed."
         echo "$1"

@@ -38,8 +38,6 @@ pthread_t   exit_waiter_id;
 int         dhcp_on = 0;               /* DHCP 模式标记 */
 int         background = 0;            /* 后台运行标记  */
 int         exit_flag = 0;
-//int         log_flag = 0;
-//int         quiet_flag = 0;
 char        *dev = NULL;               /* 连接的设备名 */
 char        *username = NULL;          
 char        *password = NULL;
