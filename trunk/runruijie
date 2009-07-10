@@ -2,22 +2,28 @@
 USERNAME="user"
 PASSWORD="pass"
 
+#---------------------------------------------------------------------
+LOGFILE="/tmp/zruijie.log"
+
+zruijie -u "$USERNAME" -p "$PASSWORD" --dhcp -b "$@" 2>&1|tee "$LOGFILE"
+#cat zrj.txt|tee "$LOGFILE"
+
+program_err=`sed -n -e '/^@@ERROR/p' $LOGFILE`
+server_info=`sed -n -e '/^>>Server/p' $LOGFILE`
+account_info=`sed -n -e '/^>>Account/{N;s/\n//;p}' $LOGFILE`
+
 notify(){
-    notify-send "$1";
+    notify-send "锐捷" "$1";
     if [ $? -eq 127 ]; then
         echo "\`notify-send' not installed."
         echo "$1"
     fi
 }
 
-log="`zruijie -u "$USERNAME" -p "$PASSWORD" --dhcp -b "$@"|sed '/^>>Account/{N;s/\n//}'`"
-#log="`cat zrj.txt|sed '/^>>Account/{N;s/\n//}'`"
-echo "$log" |
-    while read line; do
-        if echo "$line" | grep -q '^&&Info'; then
-            echo "$line"
-        elif echo "$line" | grep -q '^>>Server\|^>>Account'; then
-            notify "${line##>>}"
-        fi
-    done
-exit 0
+for msg in "$program_err" "$server_info" "$account_info"; do
+    if [[ $msg ]]; then
+        notify "${msg##>>}"
+    fi
+done
+
+
