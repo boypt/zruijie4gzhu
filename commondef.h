@@ -43,7 +43,7 @@
 #include <iconv.h>
 
 /* ZRuijie Version */
-#define ZRJ_VER "0.2"
+#define ZRJ_VER "0.3"
 
 /* default snap length (maximum bytes per packet to capture) */
 #define SNAP_LEN 1518
