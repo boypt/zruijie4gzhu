@@ -11,7 +11,7 @@ zruijie -u "$USERNAME" -p "$PASSWORD" --dhcp -b "$@" 2>&1|tee "$LOGFILE"
 program_err=`sed -n -e '/^@@ERROR/p' $LOGFILE`
 server_info=`sed -n -e '/^>>Server/p' $LOGFILE`
 account_info=`sed -n -e '/^>>Account/{N;s/\n//;p}' $LOGFILE`
-
+rm $LOGFILE
 notify(){
     notify-send "锐捷" "$1";
     if [ $? -eq 127 ]; then

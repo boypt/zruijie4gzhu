@@ -18,7 +18,7 @@
 
 
 
-#include	<assert.h>
+#include <assert.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <signal.h>
@@ -51,7 +51,7 @@ flock_reg ()
     //阻塞式的加锁
     if (fcntl (lockfile, F_SETLKW, &fl) < 0){
         perror ("fcntl_reg");
-        exit(1);
+        exit(EXIT_FAILURE);
     }
  
     //把pid写入锁文件
@@ -71,7 +71,7 @@ daemon_init(void)
 	    perror ("Fork");
 	else if (pid != 0) {
         fprintf(stdout, "&&Info: Forked background with PID: [%d]\n\n", pid);
-		exit(0);
+		exit(EXIT_SUCCESS);
     }
 	setsid();		/* become session leader */
 	assert (0 == chdir("/tmp"));		/* change working directory */
@@ -98,7 +98,7 @@ program_running_check()
     //尝试获得文件锁
     if (fcntl (lockfile, F_GETLK, &fl) < 0){
         perror ("fcntl_get");
-        exit(1);
+        exit(EXIT_FAILURE);
     }
 
     if (exit_flag) {
@@ -281,7 +281,7 @@ signal_interrupted (int signo)
 void *
 thread_wait_exit (void *arg)
 {
-    int i = 15;
+    int i = 10;
     do {
         fprintf(stdout, "Please wait until session ends ... %2d\r", i);
         fflush (stdout);
@@ -303,13 +303,13 @@ int main(int argc, char **argv)
     lockfile = open (LOCKFILE, O_RDWR | O_CREAT , LOCKMODE);
     if (lockfile < 0){
         perror ("Lockfile");
-        exit(1);
+        exit(EXIT_FAILURE);
     }
 
     if ( (ins_pid = program_running_check ()) ) {
         fprintf(stderr,"@@ERROR: zRuijie Already "
                             "Running with PID %d\n", ins_pid);
-        exit(EXIT_FAILURE);
+        exit(EXIT_SUCCESS);
     }
     init_info();
     init_device();
