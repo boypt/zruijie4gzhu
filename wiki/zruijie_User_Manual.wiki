@@ -1,4 +1,4 @@
-#labels Phase-Support,Featured
+#labels Deprecated,Phase-Support
 = zRuijie4GZHU用户手册 =
 
     zRuijie4GZHU是基于pcap库的跨平台（暂限Unix系列）锐捷兼容客户端，为目前广州大学大学城校区的校园网接入协议而兼容，但不限于广州大学使用，可能兼容其他部署了锐捷的环境。
