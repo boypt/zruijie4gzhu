@@ -30,6 +30,8 @@ pcap_t      *handle;			        /* packet capture handle */
 enum STATE  state;                      /* program state */
 pthread_t   live_keeper_id;             /*保鲜报文线程id*/
 pthread_t   exit_waiter_id;
+uint8_t     muticast_mac[] =            /* Star认证服务器多播地址 */
+                        {0x01, 0xd0, 0xf8, 0x00, 0x00, 0x03};
 
 /* #####   GLOBLE VAR DEFINITIONS   ###################
  *-----------------------------------------------------------------------------
@@ -49,7 +51,7 @@ char        *client_ver = NULL;         /* 报文协议版本号 */
 
 /* #####   GLOBLE VAR DEFINITIONS   ######################### 
  *-----------------------------------------------------------------------------
- *  报文相关信息变量，由init_info函数初始化。
+ *  报文相关信息变量，由init_info 、init_device函数初始化。
  *-----------------------------------------------------------------------------*/
 int         username_length;
 int         password_length;
@@ -59,8 +61,8 @@ uint32_t    local_gateway = -1;
 uint32_t    local_dns = -1;
 uint8_t     local_mac[ETHER_ADDR_LEN]; /* MAC地址 */
 uint8_t     client_ver_val[2];
-uint8_t     muticast_mac[] =            /* Star认证服务器多播地址 */
-                        {0x01, 0xd0, 0xf8, 0x00, 0x00, 0x03};
+char        devname[64];
+
 
 // debug function
 void 
@@ -237,12 +239,23 @@ void init_info()
  */
 void init_device()
 {
-    struct  bpf_program fp;			/* compiled filter program (expression) */
-    char    filter_exp[51];         /* filter expression [3] */
-    int     use_pseudo_ip = 0;      /* DHCP模式网卡无IP情况下使用伪IP的标志 */
+    struct          bpf_program fp;			/* compiled filter program (expression) */
+    char            filter_exp[51];         /* filter expression [3] */
+    pcap_if_t       *alldevs;
+    pcap_addr_t     *addrs;
 
-    if(dev == NULL)
-	    dev = pcap_lookupdev(errbuf);
+	/* Retrieve the device list */
+	if(pcap_findalldevs(&alldevs, errbuf) == -1)
+	{
+		fprintf(stderr,"Error in pcap_findalldevs: %s\n", errbuf);
+		exit(1);
+	}
+
+    /* 使用第一块设备 */
+    if(dev == NULL) {
+        dev = alldevs->name;
+        strcpy (devname, dev);
+    }
 
 	if (dev == NULL) {
 		fprintf(stderr, "Couldn't find default device: %s\n",
@@ -264,6 +277,14 @@ void init_device()
 		exit(EXIT_FAILURE);
 	}
 
+    /* Get IP ADDR and MASK */
+    for (addrs = alldevs->addresses; addrs; addrs=addrs->next) {
+        if (addrs->addr->sa_family == AF_INET) {
+            local_ip = ((struct sockaddr_in *)addrs->addr)->sin_addr.s_addr;
+            local_mask = ((struct sockaddr_in *)addrs->netmask)->sin_addr.s_addr;
+        }
+    }
+
     /* get device basic infomation */
     struct ifreq ifr;
     int sock;
@@ -281,46 +302,6 @@ void init_device()
         exit(EXIT_FAILURE);
     }
     memcpy(local_mac, ifr.ifr_hwaddr.sa_data, ETHER_ADDR_LEN);
-    
-    //尝试获得网卡IP
-    if(ioctl(sock, SIOCGIFADDR, &ifr) < 0)
-    {
-        //获取不了IP
-        if (dhcp_on){ //DHCP模式下
-            use_pseudo_ip = 1; //设置标签
-            fprintf(stdout, "&&Info: No IP attached to %s, use `169.254.216.45' instead.\n",
-                    dev);
-        }
-        else {
-            perror("ioctl");
-            exit(EXIT_FAILURE);
-        }
-    }
-
-    //如果用户同时指定了IP和MASK，则优先使用(已在init_info转换完成)，
-    //否则由程序处理
-    if (!(local_ip && local_mask)) {
-
-        //获取不了IP，且用户没有定义IP，使用伪IP
-        if (use_pseudo_ip) {
-            local_ip = inet_addr ("169.254.216.45");
-            local_mask = inet_addr ("255.255.255.0");
-        }
-
-        //获取到IP，使用网卡的真实IP
-        else {
-            local_ip = ((struct  sockaddr_in*)&ifr.ifr_addr)->sin_addr.s_addr;
-
-            //获得子网掩码
-            if(ioctl(sock, SIOCGIFNETMASK, &ifr) < 0)
-            {
-                perror("ioctl");
-                exit(EXIT_FAILURE);
-            }
-            local_mask = ((struct sockaddr_in*)&ifr.ifr_netmask)->sin_addr.s_addr;
-        }
-    }
-
 
     /* construct the filter string */
     sprintf(filter_exp, "ether dst %02x:%02x:%02x:%02x:%02x:%02x"
@@ -343,6 +324,7 @@ void init_device()
 		exit(EXIT_FAILURE);
 	}
     pcap_freecode(&fp);
+    pcap_freealldevs(alldevs);
 }
 
 /* 
@@ -497,7 +479,7 @@ show_local_info ()
 {
     char    buf[32];
     printf("##### zRuijie for GZHU ver. %s ######\n", ZRJ_VER);
-    printf("Device:     %s\n", dev);
+    printf("Device:     %s\n", devname);
     printf("MAC:        %02x:%02x:%02x:%02x:%02x:%02x\n",
                         local_mac[0],local_mac[1],local_mac[2],
                         local_mac[3],local_mac[4],local_mac[5]);
