@@ -162,7 +162,7 @@ action_by_eap_type(enum EAPType pType,
             action_eap_req_md5_chg (eap_head, packetinfo, packet);
             break;
         case RUIJIE_EAPOL_MSG:
-            print_server_info (packet, packetinfo->caplen, RUIJIE_EAPOL_MSG);
+            print_notification_msg (packet);
             break;
         default:
             return;
