@@ -40,6 +40,8 @@ action_eap_req_md5_chg(const struct eap_header *eap_head,
 void 
 print_server_info (const uint8_t *packet, u_int packetlength,
                     enum EAPType pack_type);
+uint32_t
+get_ruijie_success_key (const uint8_t *success_packet);
 
 void 
 send_eap_packet(enum EAPType send_type);
