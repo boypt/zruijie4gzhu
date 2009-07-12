@@ -33,7 +33,7 @@ sudo ./install
 
     如果系统内安装有libnotify的工具，运行脚本时会出现如图的提示(Ubuntu中的效果，如果没有，请安装`sudo apt-get libnotify-bin`):http://zruijie4gzhu.googlecode.com/files/notify.png
 
-    可以通过桌面的启动器运行`runruijie`，或把把`runruijie`加入到比如GNOME的“系统->首选项->会话“当中，以便每次登录系统即可自动认证上网。
+    可以通过桌面的启动器运行`runruijie`，或把把`runruijie`加入到比如GNOME的“系统->首选项->启动程序“当中，以便每次登录系统即可自动认证上网。
 
     唯一需要注意的是，如果出现账户信息出错、欠费等情况，程序会给出终止提示，此时有约10秒的session终结期，当然用户可以Ctrl + C马上终结程序，但是*在session终结之前再次进行任何认证，都不能成功的*。
 
@@ -62,6 +62,8 @@ sudo ./install
 
 = 其他 =
     
+    当用户使用的认证网卡不是默认的第一个网卡（如eth1）时，可使用`runruijie --dev eth1`这样的参数方式启动程序，或者修改`runruijie`文件内ARGS=""，加入自定义的参数。
+
     程序还有其他的配置选项，如果设置客户端版本号等，但这些参数只是在默认不能认证是才使用的参数，具体请查看--help的内容。
 
 Another PT Work. 
