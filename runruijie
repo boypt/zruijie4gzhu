@@ -1,9 +1,9 @@
 #!/bin/bash
-USERNAME="user"
-PASSWORD="pass"
+USERNAME=user
+PASSWORD=pass
 
 #---------------------------------------------------------------------
-LOGFILE="/tmp/zruijie.log"
+LOGFILE=/tmp/zruijie.log
 
 zruijie -u "$USERNAME" -p "$PASSWORD" --dhcp -b "$@" 2>&1|tee "$LOGFILE"
 #cat zrj.txt|tee "$LOGFILE"
