@@ -63,10 +63,9 @@ action_eapol_success(const struct eap_header *eap_head,
         background = 0;         /* 防止以后误触发 */
         daemon_init();
     }
+
     /* 获得succes_key */
-    ruijie_succes_key = ntohl (
-            ruijie_byte_to_int32 (
-                (const uint8_t*)(packet + 0x104)));
+    ruijie_succes_key = get_ruijie_success_key (packet);
 
     /* 打开保持线程 */
     if ( !live_keeper_id ) {
@@ -258,6 +257,24 @@ get_md5_digest(const char* str, size_t len)
     return result;
 }
 
+uint32_t
+get_ruijie_success_key (const uint8_t *success_packet)
+{
+    uint16_t        msg_length;
+    uint16_t        empty_length;
+    uint16_t        key_offset;
+    
+    msg_length = ntohs(*(uint16_t*)(success_packet + 0x1a));
+    empty_length = ntohs(*(uint16_t*)(success_packet + 0x1c + msg_length + 0x04));
+
+//    printf ("%02x...%02x...", msg_length, empty_length);
+
+    key_offset = 0x1c + msg_length + 0x06 + empty_length + 0x12;
+
+    return ntohl (ruijie_byte_to_int32 (success_packet + key_offset));
+}
+
+
 /* 
  * ===  FUNCTION  ======================================================================
  *         Name:  code_convert
@@ -293,45 +310,49 @@ print_server_info (const uint8_t *packet, u_int packetlength,
                     enum EAPType pack_type)
 {
     char            msg_buf[1024];
-    size_t          msg_len;
     char            *msg;
+    uint16_t        msg_length;
+    uint16_t        empty_length;
+    uint16_t        account_info_offset;
 
     if (pack_type == RUIJIE_EAPOL_MSG)
         goto RUIJIE_MSG;
 
+    msg_length = ntohs(*(uint16_t*)(packet + 0x1a));
+    empty_length = ntohs(*(uint16_t*)(packet + 0x1c + msg_length + 0x04));
+
     /* success和failure报文系统信息的固定位置 */
-    msg_len = ntohs(*(uint16_t*)(packet + 0x1a));
-    if (msg_len < 3)
-        return;
+    msg_length = ntohs(*(uint16_t*)(packet + 0x1a));
     msg = (char*)(packet + 0x1c);
     code_convert ("gb2312", "utf-8", 
-                msg, msg_len,
+                msg, msg_length,
                 msg_buf, 1024);
     fprintf (stdout, ">>Server Message: %s\n", msg_buf);
 //    fflush (stderr);
 
-    if (packetlength < 0x110)
-        return;
+    account_info_offset = 0x1c + msg_length + 0x06 + empty_length + 0x12 + 0x09;
 
-    /* success报文关于用户账户信息的位置 */
-    msg_len = *(uint8_t*)(packet + 0x114);
-    msg = (char*)(packet + 0x115);
-    code_convert ("gb2312", "utf-8", 
-                msg, msg_len,
-                msg_buf, 1024);
-    fprintf (stdout, ">>Account Info: %s\n", msg_buf);
-//    fflush (stderr);
+    /* success报文关于用户账户信息 */
+    if (0x1a48 == ntohs(*(uint16_t*)(packet + account_info_offset))) {
+        msg_length = *(uint8_t*)(packet + account_info_offset + 0x07);
+        msg = (char*)(packet + account_info_offset + 0x08);
+        code_convert ("gb2312", "utf-8", 
+                    msg, msg_length,
+                    msg_buf, 1024);
+        fprintf (stdout, ">>Account Info: %s\n", msg_buf);
+    }
     return;
     
     /* 锐捷的通知报文 */
 RUIJIE_MSG:;
     msg = (char*)(packet + 0x1b);
-    msg_len = strlen (msg);
+    msg_length = strlen (msg);
     code_convert ("gb2312", "utf-8", 
-                msg, msg_len,
+                msg, msg_length,
                 msg_buf, 1024);
 
     fprintf (stdout, ">>Manager Notification: %s\n", msg_buf);
 //    fflush (stderr);
 }
+
 
