@@ -58,11 +58,16 @@ sudo ./install
 
     从命令行进入源代码目录，运行`make`，应该很快就能生成zruijie，当然前提是系统中安装了gcc等编译环境，这里不再累赘。
 
-    make install可完成操作，同样有make uninstall以供卸载。再次提醒安装前先修改runruijie的账户信息。
+    make install可完成安装，这跟运行install效果一样，同样有make uninstall以供卸载。再次提醒安装前先修改runruijie的账户信息。
 
 = 其他 =
     
-    当用户使用的认证网卡不是默认的第一个网卡（如eth1）时，可使用`runruijie --dev eth1`这样的参数方式启动程序，或者修改`runruijie`文件内ARGS=""，加入自定义的参数。
+    当用户使用的认证网卡不是默认的第一个网卡（如eth0）时，可使用`runruijie --dev eth1`这样的参数方式启动程序，或者修改`runruijie`文件内ARGS=""，改成ARGS="--dev eth1"。
+
+    如果发现不能完成认证，请留意认证过程的提示：
+
+    ##### zRuijie for GZHU ver. 0.5 ######
+    Device:     eth0   <- 此处是否是合适的网卡设备
 
     程序还有其他的配置选项，如果设置客户端版本号等，但这些参数只是在默认不能认证是才使用的参数，具体请查看--help的内容。
 
