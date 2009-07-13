@@ -18,17 +18,17 @@ zRuijie4GZHU用户手册
 
     sudo ./install 
 
-    安装程序会复制核心程序zruijie以及用户脚本runruijie到系统目录/usr/bin，并设置相关文件，如果用户希望安装到其他目录，请修改install安装脚本中第二行INSTALL_PATH变量。 
+    安装程序会复制核心程序zruijie以及用户脚本runruijie到系统目录/usr/bin，并设置相关文件，如果用户希望安装到其他目录，只需要在install后给出目的目录，如sudo ./install /usr/local/bin，但请保证目的目录在系统PATH环境变量内。 
 
     成功执行安装将看到####Installation Done.####的提示。 
 
 运行
 
-    如果用户配置的帐号信息无误并且安装成功，那么用户只需要运行runruijie，即可看到有关的认证成功的信息，并能顺利上网。 
+    如果用户配置的帐号信息无误并且安装成功，那么用户只需要运行runruijie，即可看到有关的认证成功的信息。 
 
-    如果系统内安装有libnotify的工具，运行脚本时会出现如图的提示(Ubuntu中的效果，如果没有，请安装sudo apt-get libnotify-bin): 
+    如果系统内安装有libnotify的工具，运行脚本时会出现如图的提示(Ubuntu中的效果，如果没有，请安装sudo apt-get libnotify-bin):[没有安装libnotify-bin虽然不能现实，但并不影响认证。]
 
-    可以通过桌面的启动器运行runruijie，或把把runruijie加入到比如GNOME的“系统->首选项->会话“当中，以便每次登录系统即可自动认证上网。 
+    可以通过桌面的启动器运行runruijie，或把把runruijie加入到比如GNOME的“系统->首选项->启动程序“当中，以便每次登录系统即可自动认证上网。 
 
     唯一需要注意的是，如果出现账户信息出错、欠费等情况，程序会给出终止提示，此时有约10秒的session终结期，当然用户可以Ctrl + C马上终结程序，但是在session终结之前再次进行任何认证，都不能成功的。 
 
@@ -52,8 +52,16 @@ zRuijie4GZHU用户手册
 
     从命令行进入源代码目录，运行make，应该很快就能生成zruijie，当然前提是系统中安装了gcc等编译环境，这里不再累赘。 
 
-    代码包内包含安装脚本和运行脚本，完成编译后即可安装。 
+    make install也可完成安装，这根运行install效果基本一样，同样有make uninstall以供卸载。再次提醒安装前先修改runruijie的账户信息。 
+
 其他
+
+    当用户使用的认证网卡不是默认的第一个网卡（如eth0）时，可使用runruijie --dev eth1这样的参数方式启动程序，或者修改runruijie文件内ARGS=""，加入自定义的参数。 
+
+    如果发现不能完成认证，请留意认证过程的提示：
+
+    ##### zRuijie for GZHU ver. 0.5 ######
+    Device:     eth0   <- 此处是否是合适的网卡设备
 
     程序还有其他的配置选项，如果设置客户端版本号等，但这些参数只是在默认不能认证是才使用的参数，具体请查看--help的内容。 
 
