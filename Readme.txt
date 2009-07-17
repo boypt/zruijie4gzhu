@@ -26,7 +26,7 @@ zRuijie4GZHU用户手册
 
     如果用户配置的帐号信息无误并且安装成功，那么用户只需要运行runruijie，即可看到有关的认证成功的信息。 
 
-    如果系统内安装有libnotify的工具，运行脚本时会出现如图的提示(Ubuntu中的效果，如果没有，请安装sudo apt-get libnotify-bin):[没有安装libnotify-bin虽然不能现实，但并不影响认证。]
+    如果系统内安装有libnotify的工具，运行脚本时会出现如图的提示(Ubuntu中的效果，如果没有，请安装sudo apt-get libnotify-bin):[没有安装libnotify-bin虽然不能显示，但并不影响认证。]
 
     可以通过桌面的启动器运行runruijie，或把把runruijie加入到比如GNOME的“系统->首选项->启动程序“当中，以便每次登录系统即可自动认证上网。 
 
@@ -52,7 +52,7 @@ zRuijie4GZHU用户手册
 
     从命令行进入源代码目录，运行make，应该很快就能生成zruijie，当然前提是系统中安装了gcc等编译环境，这里不再累赘。 
 
-    make install也可完成安装，这根运行install效果基本一样，同样有make uninstall以供卸载。再次提醒安装前先修改runruijie的账户信息。 
+    make install也可完成安装，这根运行install效果基本一样，同样有make uninstall以供卸载。再次提醒安装前先修改runruijie文件内的账户信息。 
 
 其他
 

@@ -13,4 +13,4 @@ TARFILE=zruijie4gzhu_bin_$VER\_$ARCH.tar.gz
 make clean
 make
 tar cvfz $TARFILE $FILELIST
-echo "Pack Done.$TARFILE"
+echo "Pack Done ---> $TARFILE"
