@@ -401,20 +401,20 @@ init_frames()
  *  Description:  显示信息
  * =====================================================================================
  */
-void 
-show_local_info ()
-{
-    printf("##### zRuijie for GZHU ver. %s ######\n", ZRJ_VER);
-    printf("Device:     %s\n", devname);
-    printf("MAC:        %02x:%02x:%02x:%02x:%02x:%02x\n",
-                        local_mac[0],local_mac[1],local_mac[2],
-                        local_mac[3],local_mac[4],local_mac[5]);
-
-    printf("IP:         %s\n", inet_ntoa(*(struct in_addr*)&local_ip));
-    printf("MASK:       %s\n", inet_ntoa(*(struct in_addr*)&local_mask));
-    printf("Gateway:    %s\n", inet_ntoa(*(struct in_addr*)&local_gateway));
-    printf("DNS:        %s\n", inet_ntoa(*(struct in_addr*)&local_dns));
-
-    printf("Client ver: %u.%u\n", client_ver_val[0], client_ver_val[1]);
-    printf("######################################\n");
-}
+//void 
+//show_local_info ()
+//{
+//    printf("##### zRuijie for GZHU ver. %s ######\n", ZRJ_VER);
+//    printf("Device:     %s\n", devname);
+//    printf("MAC:        %02x:%02x:%02x:%02x:%02x:%02x\n",
+//                        local_mac[0],local_mac[1],local_mac[2],
+//                        local_mac[3],local_mac[4],local_mac[5]);
+//
+//    printf("IP:         %s\n", inet_ntoa(*(struct in_addr*)&local_ip));
+//    printf("MASK:       %s\n", inet_ntoa(*(struct in_addr*)&local_mask));
+//    printf("Gateway:    %s\n", inet_ntoa(*(struct in_addr*)&local_gateway));
+//    printf("DNS:        %s\n", inet_ntoa(*(struct in_addr*)&local_dns));
+//
+//    printf("Client ver: %u.%u\n", client_ver_val[0], client_ver_val[1]);
+//    printf("######################################\n");
+//}

@@ -195,7 +195,7 @@ send_eap_packet(enum EAPType send_type)
 void 
 fill_password_md5(uint8_t attach_key[], uint8_t eap_id)
 {
-    extern char *password;
+    extern char password[];
     extern int  password_length;
     char *psw_key = malloc(1 + password_length + 16);
     char *md5_challenge_key;
