@@ -29,8 +29,8 @@ typedef unsigned short uint16_t;
 #include <errno.h>
 #include <assert.h>
 
-#include <Winsock2.h>
-#include <Iphlpapi.h>
+#include <winsock2.h>
+#include <iphlpapi.h>
 /* ZRuijie Version */
 #define ZRJ_VER "0.5"
 
