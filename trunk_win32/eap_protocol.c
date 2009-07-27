@@ -197,17 +197,18 @@ fill_password_md5(uint8_t attach_key[], uint8_t eap_id)
 {
     extern char password[];
     extern int  password_length;
-    char *psw_key = malloc(1 + password_length + 16);
-    char *md5_challenge_key;
+    char *psw_key; 
+    char *md5;
+
+    psw_key = malloc(1 + password_length + 16);
     psw_key[0] = eap_id;
     memcpy (psw_key + 1, password, password_length);
     memcpy (psw_key + 1 + password_length, attach_key, 16);
 
-    md5_challenge_key = get_md5_digest(psw_key, 1 + password_length + 16);
-    memcpy (eap_response_md5ch + 14 + 10, md5_challenge_key, 16);
+    md5 = get_md5_digest(psw_key, 1 + password_length + 16);
+    memcpy (eap_response_md5ch + 14 + 10, md5, 16);
 
     free (psw_key);
-    free (md5_challenge_key);
 }
 
 /* 
@@ -219,15 +220,13 @@ fill_password_md5(uint8_t attach_key[], uint8_t eap_id)
 char* 
 get_md5_digest(const char* str, size_t len)
 {
+    static md5_byte_t digest[16];
 	md5_state_t state;
-	md5_byte_t digest[16];
 	md5_init(&state);
 	md5_append(&state, (const md5_byte_t *)str, len);
 	md5_finish(&state, digest);
 
-    char *result = malloc(16);
-    memcpy(result, digest, 16);
-    return result;
+    return (char*)digest;
 }
 
 uint32_t
