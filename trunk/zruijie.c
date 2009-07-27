@@ -253,14 +253,19 @@ void init_device()
 
     /* 使用第一块设备 */
     if(dev == NULL) {
-        dev = alldevs->name;
+        pcap_if_t *d;
+        for (d = alldevs; d; d = d->next) {
+            pcap_addr_t *a;
+            char flag = 0;
+            for(a = d->addresses; a ; a=a->next) {
+                if (a->addr->sa_family == AF_INET)
+                    flag = 1;
+            }
+            if (flag)
+                break;
+        }
+        dev = d->name;
         strcpy (devname, dev);
-    }
-
-	if (dev == NULL) {
-		fprintf(stderr, "Couldn't find default device: %s\n",
-			errbuf);
-		exit(EXIT_FAILURE);
     }
 	
 	/* open capture device */
