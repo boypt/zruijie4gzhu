@@ -242,7 +242,7 @@ void init_device()
     struct          bpf_program fp;			/* compiled filter program (expression) */
     char            filter_exp[51];         /* filter expression [3] */
     pcap_if_t       *alldevs;
-    pcap_addr_t     *addrs;
+//    pcap_addr_t     *addrs;
 
 	/* Retrieve the device list */
 	if(pcap_findalldevs(&alldevs, errbuf) == -1)
@@ -255,16 +255,25 @@ void init_device()
     if(dev == NULL) {
         pcap_if_t *d;
         for (d = alldevs; d; d = d->next) {
+            
+            if (d->flags & PCAP_IF_LOOPBACK)
+                continue;
+
             pcap_addr_t *a;
             char flag = 0;
-            for(a = d->addresses; a ; a=a->next) {
-                if (a->addr->sa_family == AF_INET)
+            for(a = d->addresses; a; a=a->next) {
+
+                if (flag) break;
+                /* Get IP ADDR and MASK */
+                if (a->addr->sa_family == AF_INET) {
+                    local_ip = ((struct sockaddr_in *)a->addr)->sin_addr.s_addr;
+                    local_mask = ((struct sockaddr_in *)a->netmask)->sin_addr.s_addr;
+                    dev = d->name;
                     flag = 1;
+                }
             }
-            if (flag)
-                break;
         }
-        dev = d->name;
+
         strcpy (devname, dev);
     }
 	
@@ -282,14 +291,7 @@ void init_device()
 		exit(EXIT_FAILURE);
 	}
 
-    /* Get IP ADDR and MASK */
-    for (addrs = alldevs->addresses; addrs; addrs=addrs->next) {
-        if (addrs->addr->sa_family == AF_INET) {
-            local_ip = ((struct sockaddr_in *)addrs->addr)->sin_addr.s_addr;
-            local_mask = ((struct sockaddr_in *)addrs->netmask)->sin_addr.s_addr;
-        }
-    }
-
+    
     /* get device basic infomation */
     struct ifreq ifr;
     int sock;
