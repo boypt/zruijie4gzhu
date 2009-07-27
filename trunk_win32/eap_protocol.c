@@ -48,7 +48,6 @@ action_eapol_success(const struct eap_header *eap_head,
                         const struct pcap_pkthdr *packetinfo,
                         const uint8_t *packet)
 {
-    extern int          background;
     extern HANDLE       hLIFE_KEEP_THREAD;
 
     state = ONLINE;
@@ -66,7 +65,6 @@ action_eapol_failre(const struct eap_header *eap_head,
                         const struct pcap_pkthdr *packetinfo,
                         const uint8_t *packet)
 {
-    extern int          background;
 	extern HANDLE		hEXIT_WAITER;
 	extern HANDLE		hLIFE_KEEP_THREAD;
 
@@ -100,7 +98,6 @@ action_eap_req_idnty(const struct eap_header *eap_head,
                         const struct pcap_pkthdr *packetinfo,
                         const uint8_t *packet)
 {
-    extern int          exit_flag;
     if (state == LOGOFF)
         return;
 	state = CONNECTING;

@@ -195,7 +195,6 @@ void init_device()
     char            filter_exp[51];         /* filter expression [3] */
     pcap_if_t       *alldevs;
 	pcap_if_t 		*d;
-    pcap_addr_t     *addrs;
 	extern HANDLE    hwndComboList;
 	
 	/* NIC device  */
