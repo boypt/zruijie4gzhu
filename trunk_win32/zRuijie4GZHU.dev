@@ -1,7 +1,7 @@
 [Project]
 FileName=zRuijie4GZHU.dev
 Name=zRuijie4GZHU
-UnitCount=10
+UnitCount=12
 Type=0
 Ver=1
 ObjFiles=
@@ -25,7 +25,7 @@ CommandLine=
 UseCustomMakefile=0
 CustomMakefile=
 IncludeVersionInfo=0
-SupportXPThemes=1
+SupportXPThemes=0
 CompilerSet=2
 CompilerSettings=0000000001010000000000
 
@@ -143,6 +143,25 @@ CompileCpp=0
 Folder=zRuijie4GZHU
 Compile=1
 Link=1
+Priority=1000
+OverrideBuildCmd=0
+BuildCmd=
+
+[Unit12]
+FileName=zruijieres.h
+CompileCpp=0
+Folder=
+Compile=1
+Link=1
+Priority=1000
+OverrideBuildCmd=0
+BuildCmd=
+
+[Unit11]
+FileName=zruijieres.rc
+Folder=zRuijie4GZHU
+Compile=1
+Link=0
 Priority=1000
 OverrideBuildCmd=0
 BuildCmd=

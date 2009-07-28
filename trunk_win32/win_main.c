@@ -1,18 +1,19 @@
 #include <windows.h>
 #include <windowsx.h>
 #include <commctrl.h>
+#include "zruijieres.h"
 #include "commondef.h"
 #include "eap_protocol.h"
 
-#define ID_EDIT_USER 1
-#define ID_EDIT_PASS 2
-#define ID_BUTTON_CONN 3
-#define ID_BUTTON_EXIT 4
-#define ID_CHKBOX_SAVE 5
-#define ID_CHKBOX_AUTO 6
+//#define ID_EDIT_USER 1
+//#define ID_EDIT_PASS 2
+//#define ID_BUTTON_CONN 3
+//#define ID_BUTTON_EXIT 4
+//#define IDC_CHK_SAVE 5
+//#define IDC_CHK_AUTO 6
 LPCTSTR reg_key = "Software\\ZRuijie4Gzhu";
 
-LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam);
+INT_PTR CALLBACK DlgProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam);
 void    InitDialog(HINSTANCE hInstance);
 void     init_combo_list();
 void    on_button_connect_clicked (void);
@@ -31,16 +32,17 @@ BOOL auto_checked;
 int  combo_index;
 
 extern enum STATE state;
-HFONT hFont;
-HWND hwndWin;
+
+//HFONT hFont;
+HWND hwndDlg;
 HWND hwndEditUser;
 HWND hwndEditPass;
 HWND hwndButtonConn;
 HWND hwndButtonExit;
 HWND hwndComboList;
-HWND hwndChkBoxSave;
-HWND hwndChkBoxAuto;
-HWND hwndEditInfo;
+//HWND hwndChkBoxSave;
+//HWND hwndChkBoxAuto;
+//HWND hwndEditInfo;
 
 HANDLE hEAP_THREAD;
 HANDLE hLIFE_KEEP_THREAD;
@@ -54,7 +56,7 @@ void debug_msgbox (const char *fmt, ...)
     va_start (args, fmt);
     vsnprintf (msg, 1024, fmt, args);
     va_end (args);
-    MessageBox (hwndWin, TEXT(msg), NULL, MB_OK);
+    MessageBox (hwndDlg, TEXT(msg), NULL, MB_OK);
 }
 #endif     /* -----  not __DEBUG  ----- */
 
@@ -63,7 +65,14 @@ int WINAPI WinMain( HINSTANCE hInstance, HINSTANCE hPrevInstance,
 {
      MSG  msg ;    
      InitCommonControls();
-     InitDialog(hInstance);
+//     InitDialog(hInstance);
+    hwndDlg = CreateDialog(hInstance, MAKEINTRESOURCE(IDD_DLG_ZRJ), NULL, DlgProc);
+    hwndEditUser = GetDlgItem (hwndDlg, IDC_EDT_USR);
+    hwndEditPass = GetDlgItem (hwndDlg, IDC_EDT_PAS);
+    hwndButtonConn = GetDlgItem (hwndDlg, IDC_BTN_CONN);
+    hwndButtonExit = GetDlgItem (hwndDlg, IDC_BTN_EXIT);
+    hwndComboList = GetDlgItem (hwndDlg, IDC_CBO_LIST);
+
      init_combo_list();
      init_info();
      while( GetMessage(&msg, NULL, 0, 0)) {
@@ -73,7 +82,7 @@ int WINAPI WinMain( HINSTANCE hInstance, HINSTANCE hPrevInstance,
      return (int) msg.wParam;
 }
 
-LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
+INT_PTR CALLBACK DlgProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 {
   switch(msg)
   {
@@ -81,16 +90,16 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
         if (HIWORD(wParam) == BN_CLICKED) {
             switch (LOWORD(wParam))
             {
-                case ID_BUTTON_CONN:
+                case IDC_BTN_CONN:
                     on_button_connect_clicked();
                     break;
-                case ID_BUTTON_EXIT:
+                case IDC_BTN_EXIT:
                     on_button_exit_clicked ();
                     break;
-                case ID_CHKBOX_SAVE:
+                case IDC_CHK_SAVE:
                     on_chkbox_save_clicked();
                     break;
-                case ID_CHKBOX_AUTO:
+                case IDC_CHK_AUTO:
                     on_chkbox_auto_clicked();
                     break;
             }
@@ -98,14 +107,14 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
         else if (HIWORD(wParam) == CBN_SELCHANGE) {
             combo_index = SendMessage(hwndComboList, CB_GETCURSEL, 0, 0);
         }
-    break;
-    case WM_DESTROY:
-        PostQuitMessage(0);
-    break;
+        break;
+    case WM_CLOSE:
+         PostQuitMessage (0);
+         break;
   }
-  return DefWindowProc(hwnd, msg, wParam, lParam);
+  return FALSE;
 }
-
+/*
 void InitDialog(HINSTANCE hInstance)
 {
     WNDCLASS wc = {0};
@@ -122,52 +131,52 @@ void InitDialog(HINSTANCE hInstance)
     wc.hCursor       = LoadCursor(0,IDC_ARROW);
     RegisterClass(&wc);
     
-    hwndWin = CreateWindow( wc.lpszClassName, TEXT("zRuijie4GZHU"),
+    hwndDlg = CreateWindow( wc.lpszClassName, TEXT("zRuijie4GZHU"),
                 WS_OVERLAPPEDWINDOW | WS_VISIBLE,
                 220, 220, 180, 250, 0, 0, hInstance, 0);
                 
     hwndStatUser = CreateWindow(TEXT("static"), TEXT("Username"), 
             WS_CHILD | WS_VISIBLE,
             10, 10, 50, 14,
-            hwndWin, NULL, NULL, NULL);
+            hwndDlg, NULL, NULL, NULL);
             
     hwndStatPass = CreateWindow(TEXT("static"), TEXT("Password"), 
             WS_CHILD | WS_VISIBLE,
             10, 35, 50, 14,
-            hwndWin, NULL, NULL, NULL);
+            hwndDlg, NULL, NULL, NULL);
             
     hwndEditUser = CreateWindow(TEXT("edit"), NULL, WS_CHILD | WS_VISIBLE | WS_BORDER,
-                65, 10, 95, 18, hwndWin, (HMENU) ID_EDIT_USER,
+                65, 10, 95, 18, hwndDlg, (HMENU) ID_EDIT_USER,
                 NULL, NULL);
                 
     hwndEditPass = CreateWindow(TEXT("edit"), NULL, WS_CHILD | WS_VISIBLE | WS_BORDER | ES_PASSWORD,
-                65, 35, 95, 18, hwndWin, (HMENU) ID_EDIT_PASS,
+                65, 35, 95, 18, hwndDlg, (HMENU) ID_EDIT_PASS,
                 NULL, NULL);
                 
     hwndChkBoxSave =   CreateWindow(TEXT("button"), TEXT("Save"),
                  WS_VISIBLE | WS_CHILD | BS_AUTOCHECKBOX,
-                 10, 60, 50, 14, hwndWin, (HMENU) ID_CHKBOX_SAVE, 
+                 10, 60, 50, 14, hwndDlg, (HMENU) IDC_CHK_SAVE, 
                  NULL, NULL);
                  
     hwndChkBoxAuto = CreateWindow(TEXT("button"), TEXT("Auto Conn."),
                  WS_VISIBLE | WS_CHILD | BS_AUTOCHECKBOX,
-                 90, 60, 80, 14, hwndWin, (HMENU) ID_CHKBOX_AUTO, 
+                 90, 60, 80, 14, hwndDlg, (HMENU) IDC_CHK_AUTO, 
                  NULL, NULL);
                  
     hwndButtonConn = CreateWindow(TEXT("button"), TEXT("Connect"), WS_VISIBLE | WS_CHILD,  
-                10, 80, 70, 25, hwndWin, (HMENU) ID_BUTTON_CONN, 
+                10, 80, 70, 25, hwndDlg, (HMENU) ID_BUTTON_CONN, 
                 NULL, NULL); 
                 
     hwndButtonExit = CreateWindow(TEXT("button"), TEXT("Exit"), WS_VISIBLE | WS_CHILD,  
-                90, 80, 70, 25, hwndWin, (HMENU) ID_BUTTON_EXIT, 
+                90, 80, 70, 25, hwndDlg, (HMENU) ID_BUTTON_EXIT, 
                 NULL, NULL); 
                 
     hwndComboList = CreateWindow(TEXT("combobox"), NULL, WS_VISIBLE | WS_CHILD | CBS_DROPDOWNLIST,  
-                10, 110, 150, 25, hwndWin, (HMENU) ID_BUTTON_EXIT, 
+                10, 110, 150, 25, hwndDlg, (HMENU) ID_BUTTON_EXIT, 
                 NULL, NULL); 
     
     hwndEditInfo = CreateWindow(TEXT("edit"), NULL, WS_VISIBLE | WS_VSCROLL | WS_BORDER | WS_CHILD | ES_MULTILINE | ES_AUTOVSCROLL |ES_WANTRETURN | ES_READONLY,
-                10, 140, 150, 70, hwndWin, NULL, NULL, NULL); 
+                10, 140, 150, 70, hwndDlg, NULL, NULL, NULL); 
                 
     hFont = CreateFont(8, 0, 0, 0, FW_MEDIUM, 0, 0, 0, 0, 0, 0, 0, 0, TEXT("MS Sans Serif"));
 
@@ -181,13 +190,13 @@ void InitDialog(HINSTANCE hInstance)
     SendMessage (hwndChkBoxSave, WM_SETFONT, (WPARAM)hFont, TRUE);
     SendMessage (hwndChkBoxAuto, WM_SETFONT, (WPARAM)hFont, TRUE);
     SendMessage (hwndEditInfo, WM_SETFONT, (WPARAM)hFont, TRUE);
-}
+}*/
 
 void on_button_connect_clicked (void)
 {
     extern char      username[];
-    extern char         password[];
-    extern int          username_length, password_length;
+    extern char      password[];
+    extern int       username_length, password_length;
 
     if (Edit_GetModify(hwndEditUser) || Edit_GetModify (hwndEditPass)) {
     
@@ -226,25 +235,25 @@ void on_button_exit_clicked ()
 
 void on_chkbox_save_clicked()
 {
-    BOOL savechek = IsDlgButtonChecked(hwndWin, ID_CHKBOX_SAVE);
+    BOOL savechek = IsDlgButtonChecked(hwndDlg, IDC_CHK_SAVE);
 
     if (savechek == BST_UNCHECKED && auto_checked == BST_CHECKED) {
-        CheckDlgButton(hwndWin, ID_CHKBOX_AUTO, BST_UNCHECKED);
+        CheckDlgButton(hwndDlg, IDC_CHK_AUTO, BST_UNCHECKED);
     }
 
-    save_checked = IsDlgButtonChecked(hwndWin, ID_CHKBOX_SAVE);
-    auto_checked = IsDlgButtonChecked(hwndWin, ID_CHKBOX_AUTO);
+    save_checked = IsDlgButtonChecked(hwndDlg, IDC_CHK_SAVE);
+    auto_checked = IsDlgButtonChecked(hwndDlg, IDC_CHK_AUTO);
 }
 
 void on_chkbox_auto_clicked()
 {
-    BOOL savechek = IsDlgButtonChecked(hwndWin, ID_CHKBOX_SAVE);
+    BOOL savechek = IsDlgButtonChecked(hwndDlg, IDC_CHK_SAVE);
 
     if (savechek == BST_UNCHECKED) 
-        CheckDlgButton(hwndWin, ID_CHKBOX_SAVE, BST_CHECKED);
+        CheckDlgButton(hwndDlg, IDC_CHK_SAVE, BST_CHECKED);
     
-    save_checked = IsDlgButtonChecked(hwndWin, ID_CHKBOX_SAVE);
-    auto_checked = IsDlgButtonChecked(hwndWin, ID_CHKBOX_AUTO);
+    save_checked = IsDlgButtonChecked(hwndDlg, IDC_CHK_SAVE);
+    auto_checked = IsDlgButtonChecked(hwndDlg, IDC_CHK_AUTO);
 }
 
 DWORD WINAPI eap_thread()
@@ -315,7 +324,7 @@ void init_combo_list()
     }
     pcap_freealldevs(alldevs);
     
-    reg_info_dword (reg_key, "if_index", FALSE, index, &combo_index);
+    reg_info_dword (reg_key, "if_index", FALSE, index, (DWORD*)&combo_index);
 
     if (index == combo_index)
         SendMessage(hwndComboList, CB_SETCURSEL, (WPARAM)index, 0);
@@ -326,7 +335,11 @@ void init_combo_list()
 
 void edit_info_append (const char *msg)
 {
+    HWND hwndEditInfo;
     int len;
+
+    hwndEditInfo = GetDlgItem (hwndDlg, IDC_EDT_INFO); 
+
     len = GetWindowTextLength (hwndEditInfo);
     SetFocus (hwndEditInfo);
     Edit_SetSel (hwndEditInfo, len, len);
@@ -404,8 +417,8 @@ void init_info()
 
     reg_info_dword (reg_key, "save_checked", FALSE, BST_UNCHECKED, (DWORD*)&save_checked);
     reg_info_dword (reg_key, "auto_checked", FALSE, BST_UNCHECKED, (DWORD*)&auto_checked);
-    CheckDlgButton(hwndWin, ID_CHKBOX_SAVE, save_checked);
-    CheckDlgButton(hwndWin, ID_CHKBOX_AUTO, auto_checked);
+    CheckDlgButton(hwndDlg, IDC_CHK_SAVE, save_checked);
+    CheckDlgButton(hwndDlg, IDC_CHK_AUTO, auto_checked);
     
 
     reg_info_dword (reg_key, "client_ver_0",             FALSE, 3, (DWORD*)&client_ver_val[0]);
@@ -416,7 +429,7 @@ void init_info()
 
 void thread_error_exit(const char *errmsg) 
 {
-    MessageBox (hwndWin, errmsg, NULL, MB_OK);
+    MessageBox (hwndDlg, errmsg, NULL, MB_OK);
     update_interface_state (NULL);
     ExitThread(0);
 }

@@ -41,5 +41,5 @@ md5.o: md5.c
 zruijie.o: zruijie.c
 	$(CC) -c zruijie.c -o zruijie.o $(CFLAGS)
 
-zRuijie4GZHU_private.res: zRuijie4GZHU_private.rc 
+zRuijie4GZHU_private.res: zRuijie4GZHU_private.rc zruijieres.rc 
 	$(WINDRES) -i zRuijie4GZHU_private.rc --input-format=rc -o zRuijie4GZHU_private.res -O coff 
