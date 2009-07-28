@@ -1,7 +1,7 @@
 #include <windows.h>
 #include <windowsx.h>
 #include <commctrl.h>
-#include "zruijieres.h"
+#include "rsrc.inc"
 #include "commondef.h"
 #include "eap_protocol.h"
 
@@ -61,25 +61,38 @@ void debug_msgbox (const char *fmt, ...)
 #endif     /* -----  not __DEBUG  ----- */
 
 int WINAPI WinMain( HINSTANCE hInstance, HINSTANCE hPrevInstance,
-            LPSTR lpCmdLine, int nCmdShow )
+        LPSTR lpCmdLine, int nCmdShow )
 {
-     MSG  msg ;    
-     InitCommonControls();
-//     InitDialog(hInstance);
-    hwndDlg = CreateDialog(hInstance, MAKEINTRESOURCE(IDD_DLG_ZRJ), NULL, DlgProc);
+    MSG  msg ;
+    HICON hIcon, hIconSm;
+
+    InitCommonControls();
+
+    hwndDlg = CreateDialog(hInstance, 
+            MAKEINTRESOURCE(IDD_DLG_ZRJ), NULL, DlgProc);
+
     hwndEditUser = GetDlgItem (hwndDlg, IDC_EDT_USR);
     hwndEditPass = GetDlgItem (hwndDlg, IDC_EDT_PAS);
     hwndButtonConn = GetDlgItem (hwndDlg, IDC_BTN_CONN);
     hwndButtonExit = GetDlgItem (hwndDlg, IDC_BTN_EXIT);
     hwndComboList = GetDlgItem (hwndDlg, IDC_CBO_LIST);
 
-     init_combo_list();
-     init_info();
-     while( GetMessage(&msg, NULL, 0, 0)) {
+    hIcon = LoadImage(GetModuleHandle(NULL), 
+            MAKEINTRESOURCE(IDI_ICON_RJ), IMAGE_ICON, 32, 32, 0);
+    hIconSm = LoadImage(GetModuleHandle(NULL), 
+            MAKEINTRESOURCE(IDI_ICON_RJ), IMAGE_ICON, 16, 16, 0);
+
+    SendMessage(hwndDlg, WM_SETICON, ICON_BIG, (LPARAM)hIcon);
+    SendMessage(hwndDlg, WM_SETICON, ICON_SMALL, (LPARAM)hIconSm);
+
+    init_combo_list();
+    init_info();
+
+    while( GetMessage(&msg, NULL, 0, 0)) {
         TranslateMessage(&msg);
         DispatchMessage(&msg);
-     }
-     return (int) msg.wParam;
+    }
+    return (int) msg.wParam;
 }
 
 INT_PTR CALLBACK DlgProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
@@ -114,83 +127,6 @@ INT_PTR CALLBACK DlgProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
   }
   return FALSE;
 }
-/*
-void InitDialog(HINSTANCE hInstance)
-{
-    WNDCLASS wc = {0};
-
-    HWND hwndStatUser;
-    HWND hwndStatPass;
-
-
-    
-    wc.lpszClassName = TEXT( "zRuijie4GZHU" );
-    wc.hInstance     = hInstance ;
-    wc.hbrBackground = GetSysColorBrush(COLOR_3DFACE);
-    wc.lpfnWndProc   = WndProc ;
-    wc.hCursor       = LoadCursor(0,IDC_ARROW);
-    RegisterClass(&wc);
-    
-    hwndDlg = CreateWindow( wc.lpszClassName, TEXT("zRuijie4GZHU"),
-                WS_OVERLAPPEDWINDOW | WS_VISIBLE,
-                220, 220, 180, 250, 0, 0, hInstance, 0);
-                
-    hwndStatUser = CreateWindow(TEXT("static"), TEXT("Username"), 
-            WS_CHILD | WS_VISIBLE,
-            10, 10, 50, 14,
-            hwndDlg, NULL, NULL, NULL);
-            
-    hwndStatPass = CreateWindow(TEXT("static"), TEXT("Password"), 
-            WS_CHILD | WS_VISIBLE,
-            10, 35, 50, 14,
-            hwndDlg, NULL, NULL, NULL);
-            
-    hwndEditUser = CreateWindow(TEXT("edit"), NULL, WS_CHILD | WS_VISIBLE | WS_BORDER,
-                65, 10, 95, 18, hwndDlg, (HMENU) ID_EDIT_USER,
-                NULL, NULL);
-                
-    hwndEditPass = CreateWindow(TEXT("edit"), NULL, WS_CHILD | WS_VISIBLE | WS_BORDER | ES_PASSWORD,
-                65, 35, 95, 18, hwndDlg, (HMENU) ID_EDIT_PASS,
-                NULL, NULL);
-                
-    hwndChkBoxSave =   CreateWindow(TEXT("button"), TEXT("Save"),
-                 WS_VISIBLE | WS_CHILD | BS_AUTOCHECKBOX,
-                 10, 60, 50, 14, hwndDlg, (HMENU) IDC_CHK_SAVE, 
-                 NULL, NULL);
-                 
-    hwndChkBoxAuto = CreateWindow(TEXT("button"), TEXT("Auto Conn."),
-                 WS_VISIBLE | WS_CHILD | BS_AUTOCHECKBOX,
-                 90, 60, 80, 14, hwndDlg, (HMENU) IDC_CHK_AUTO, 
-                 NULL, NULL);
-                 
-    hwndButtonConn = CreateWindow(TEXT("button"), TEXT("Connect"), WS_VISIBLE | WS_CHILD,  
-                10, 80, 70, 25, hwndDlg, (HMENU) ID_BUTTON_CONN, 
-                NULL, NULL); 
-                
-    hwndButtonExit = CreateWindow(TEXT("button"), TEXT("Exit"), WS_VISIBLE | WS_CHILD,  
-                90, 80, 70, 25, hwndDlg, (HMENU) ID_BUTTON_EXIT, 
-                NULL, NULL); 
-                
-    hwndComboList = CreateWindow(TEXT("combobox"), NULL, WS_VISIBLE | WS_CHILD | CBS_DROPDOWNLIST,  
-                10, 110, 150, 25, hwndDlg, (HMENU) ID_BUTTON_EXIT, 
-                NULL, NULL); 
-    
-    hwndEditInfo = CreateWindow(TEXT("edit"), NULL, WS_VISIBLE | WS_VSCROLL | WS_BORDER | WS_CHILD | ES_MULTILINE | ES_AUTOVSCROLL |ES_WANTRETURN | ES_READONLY,
-                10, 140, 150, 70, hwndDlg, NULL, NULL, NULL); 
-                
-    hFont = CreateFont(8, 0, 0, 0, FW_MEDIUM, 0, 0, 0, 0, 0, 0, 0, 0, TEXT("MS Sans Serif"));
-
-    SendMessage (hwndStatUser, WM_SETFONT, (WPARAM)hFont, TRUE);
-    SendMessage (hwndStatPass, WM_SETFONT, (WPARAM)hFont, TRUE);
-    SendMessage (hwndEditUser, WM_SETFONT, (WPARAM)hFont, TRUE);
-    SendMessage (hwndEditPass, WM_SETFONT, (WPARAM)hFont, TRUE);
-    SendMessage (hwndButtonConn, WM_SETFONT, (WPARAM)hFont, TRUE);
-    SendMessage (hwndButtonExit, WM_SETFONT, (WPARAM)hFont, TRUE);
-    SendMessage (hwndComboList, WM_SETFONT, (WPARAM)hFont, TRUE);
-    SendMessage (hwndChkBoxSave, WM_SETFONT, (WPARAM)hFont, TRUE);
-    SendMessage (hwndChkBoxAuto, WM_SETFONT, (WPARAM)hFont, TRUE);
-    SendMessage (hwndEditInfo, WM_SETFONT, (WPARAM)hFont, TRUE);
-}*/
 
 void on_button_connect_clicked (void)
 {
