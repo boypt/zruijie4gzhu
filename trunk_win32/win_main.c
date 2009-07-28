@@ -5,27 +5,22 @@
 #include "commondef.h"
 #include "eap_protocol.h"
 
-//#define ID_EDIT_USER 1
-//#define ID_EDIT_PASS 2
-//#define ID_BUTTON_CONN 3
-//#define ID_BUTTON_EXIT 4
-//#define IDC_CHK_SAVE 5
-//#define IDC_CHK_AUTO 6
 LPCTSTR reg_key = "Software\\ZRuijie4Gzhu";
 
-INT_PTR CALLBACK DlgProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam);
-void    InitDialog(HINSTANCE hInstance);
-void     init_combo_list();
-void    on_button_connect_clicked (void);
-void     on_button_exit_clicked ();
-void     on_chkbox_save_clicked ();
-void     on_chkbox_auto_clicked ();
-DWORD   WINAPI eap_thread();
-void     update_interface_state();
-void     reg_info_dword(LPCTSTR lpSubKey, LPCTSTR val_key, BOOL ForceWrite, DWORD def_val, DWORD *val);
-DWORD     reg_info_string (LPCTSTR lpSubKey, LPCTSTR val_key,  BOOL write,
-                              const char *def_val, char *val, DWORD val_len);
-void     init_info();
+INT_PTR     CALLBACK DlgProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam);
+DWORD       WINAPI eap_thread();
+
+void        init_combo_list();
+void        on_button_connect_clicked (void);
+void        on_button_exit_clicked ();
+void        on_chkbox_save_clicked ();
+void        on_chkbox_auto_clicked ();
+void        update_interface_state();
+void        reg_info_dword(LPCTSTR lpSubKey, LPCTSTR val_key, 
+                BOOL ForceWrite, DWORD def_val, DWORD *val);
+DWORD       reg_info_string (LPCTSTR lpSubKey, LPCTSTR val_key,  BOOL write,
+                const char *def_val, char *val, DWORD val_len);
+void        init_info();
                         
 BOOL save_checked;
 BOOL auto_checked;
@@ -33,16 +28,12 @@ int  combo_index;
 
 extern enum STATE state;
 
-//HFONT hFont;
 HWND hwndDlg;
 HWND hwndEditUser;
 HWND hwndEditPass;
 HWND hwndButtonConn;
 HWND hwndButtonExit;
 HWND hwndComboList;
-//HWND hwndChkBoxSave;
-//HWND hwndChkBoxAuto;
-//HWND hwndEditInfo;
 
 HANDLE hEAP_THREAD;
 HANDLE hLIFE_KEEP_THREAD;
