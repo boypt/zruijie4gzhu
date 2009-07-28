@@ -34,6 +34,8 @@ typedef unsigned short uint16_t;
 /* ZRuijie Version */
 #define ZRJ_VER "0.5"
 
+#define MAX_DEV_NAME_LEN 256
+
 /* default snap length (maximum bytes per packet to capture) */
 #define SNAP_LEN 1518
 
@@ -107,6 +109,8 @@ void    print_hex(const uint8_t *array, int count);
 
 void update_interface_state(const char *msg);
 void edit_info_append (const char *msg);
+void thread_error_exit (const char *errmsg);
+void debug_msgbox (const char *fmt, ...);
 
 #endif   /* ----- #ifndef COMMONDEF_INC  ----- */
 

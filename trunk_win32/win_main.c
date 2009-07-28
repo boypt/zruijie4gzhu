@@ -25,7 +25,11 @@ void     reg_info_dword(LPCTSTR lpSubKey, LPCTSTR val_key, BOOL ForceWrite, DWOR
 DWORD     reg_info_string (LPCTSTR lpSubKey, LPCTSTR val_key,  BOOL write,
                               const char *def_val, char *val, DWORD val_len);
 void     init_info();
-                              
+                        
+BOOL save_checked;
+BOOL auto_checked;
+int  combo_index;
+
 extern enum STATE state;
 HFONT hFont;
 HWND hwndWin;
@@ -41,6 +45,18 @@ HWND hwndEditInfo;
 HANDLE hEAP_THREAD;
 HANDLE hLIFE_KEEP_THREAD;
 HANDLE hEXIT_WAITER;
+
+#ifdef  __DEBUG
+void debug_msgbox (const char *fmt, ...)
+{
+    va_list args;
+    char msg[1024];
+    va_start (args, fmt);
+    vsnprintf (msg, 1024, fmt, args);
+    va_end (args);
+    MessageBox (hwndWin, TEXT(msg), NULL, MB_OK);
+}
+#endif     /* -----  not __DEBUG  ----- */
 
 int WINAPI WinMain( HINSTANCE hInstance, HINSTANCE hPrevInstance,
             LPSTR lpCmdLine, int nCmdShow )
@@ -78,6 +94,9 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
                     on_chkbox_auto_clicked();
                     break;
             }
+        }
+        else if (HIWORD(wParam) == CBN_SELCHANGE) {
+            combo_index = SendMessage(hwndComboList, CB_GETCURSEL, 0, 0);
         }
     break;
     case WM_DESTROY:
@@ -177,20 +196,16 @@ void on_button_connect_clicked (void)
     
         GetWindowText(hwndEditUser, username, username_length + 1);
         GetWindowText(hwndEditPass, password, password_length + 1);
-    
-        reg_info_string (reg_key, "usr", TRUE, username, NULL, 0);
-        reg_info_string (reg_key, "psw", TRUE, password, NULL, 0);
+        
+        if (save_checked) {
+            reg_info_string (reg_key, "usr", TRUE, username, NULL, 0);
+            reg_info_string (reg_key, "psw", TRUE, password, NULL, 0);
+        }
     }
     
-    int combo_index = ComboBox_GetCurSel(hwndComboList);
-    int tmp;
-    reg_info_dword (reg_key, "if_index", TRUE, combo_index, (DWORD*)&tmp);
-
-    BOOL save_checked = IsDlgButtonChecked(hwndWin, ID_CHKBOX_SAVE);
-    BOOL auto_checked = IsDlgButtonChecked(hwndWin, ID_CHKBOX_AUTO);
-    
-    reg_info_dword (reg_key, "save_checked", TRUE, save_checked, (DWORD*)&tmp);
-    reg_info_dword (reg_key, "auto_checked", TRUE, auto_checked, (DWORD*)&tmp);
+    reg_info_dword (reg_key, "if_index", TRUE, combo_index, NULL);
+    reg_info_dword (reg_key, "save_checked", TRUE, save_checked, NULL);
+    reg_info_dword (reg_key, "auto_checked", TRUE, auto_checked, NULL);
     
     EnableWindow (hwndButtonConn, FALSE);
     EnableWindow (hwndEditUser, FALSE);
@@ -211,31 +226,39 @@ void on_button_exit_clicked ()
 
 void on_chkbox_save_clicked()
 {
-    BOOL save_checked = IsDlgButtonChecked(hwndWin, ID_CHKBOX_SAVE);
-    BOOL auto_checked = IsDlgButtonChecked(hwndWin, ID_CHKBOX_AUTO);
-    if (save_checked == BST_UNCHECKED && auto_checked == BST_CHECKED) {
+    BOOL savechek = IsDlgButtonChecked(hwndWin, ID_CHKBOX_SAVE);
+
+    if (savechek == BST_UNCHECKED && auto_checked == BST_CHECKED) {
         CheckDlgButton(hwndWin, ID_CHKBOX_AUTO, BST_UNCHECKED);
     }
-    
+
+    save_checked = IsDlgButtonChecked(hwndWin, ID_CHKBOX_SAVE);
+    auto_checked = IsDlgButtonChecked(hwndWin, ID_CHKBOX_AUTO);
 }
 
 void on_chkbox_auto_clicked()
 {
-    BOOL checked = IsDlgButtonChecked(hwndWin, ID_CHKBOX_SAVE);
-    if (checked == BST_UNCHECKED) {
+    BOOL savechek = IsDlgButtonChecked(hwndWin, ID_CHKBOX_SAVE);
+
+    if (savechek == BST_UNCHECKED) 
         CheckDlgButton(hwndWin, ID_CHKBOX_SAVE, BST_CHECKED);
-    }
+    
+    save_checked = IsDlgButtonChecked(hwndWin, ID_CHKBOX_SAVE);
+    auto_checked = IsDlgButtonChecked(hwndWin, ID_CHKBOX_AUTO);
 }
 
 DWORD WINAPI eap_thread()
 {
     extern pcap_t *handle;
+    extern char    devname[];
     
     init_device();
     init_frames ();
     send_eap_packet (EAPOL_START);
     pcap_loop (handle, -1, get_packet, NULL);   /* main loop */
     pcap_close (handle);
+
+    memset (devname, 0, MAX_DEV_NAME_LEN);
     update_interface_state(NULL);
     return 0;
 }
@@ -273,7 +296,7 @@ void init_combo_list()
     pcap_addr_t     *a;
     BOOL            flag = FALSE;
     int             i = 0;
-    int                index;
+    int             index;
     
     /* Retrieve the device list */
     assert(pcap_findalldevs(&alldevs, errbuf) != -1);
@@ -292,7 +315,13 @@ void init_combo_list()
     }
     pcap_freealldevs(alldevs);
     
-    SendMessage(hwndComboList, CB_SETCURSEL, (WPARAM)index, 0);
+    reg_info_dword (reg_key, "if_index", FALSE, index, &combo_index);
+
+    if (index == combo_index)
+        SendMessage(hwndComboList, CB_SETCURSEL, (WPARAM)index, 0);
+    else
+        SendMessage(hwndComboList, CB_SETCURSEL, (WPARAM)combo_index, 0);
+        
 }
 
 void edit_info_append (const char *msg)
@@ -323,7 +352,8 @@ void reg_info_dword(LPCTSTR lpSubKey, LPCTSTR val_key, BOOL ForceWrite,
         {
             RegSetValueEx(hKey,val_key,
                    0, REG_DWORD,(LPBYTE)&def_val, sizeof(def_val));
-            *val = def_val;
+            if (val != NULL)
+                *val = def_val;
         }
     }
     RegCloseKey(hKey);
@@ -371,16 +401,22 @@ void init_info()
 //        MessageBox (NULL, username, NULL, NULL);
     }
     
-    int chk;
-    reg_info_dword (reg_key, "save_checked", FALSE, BST_UNCHECKED, (DWORD*)&chk);
-    CheckDlgButton(hwndWin, ID_CHKBOX_SAVE, chk);
-    
-    reg_info_dword (reg_key, "auto_checked", FALSE, BST_UNCHECKED, (DWORD*)&chk);
-    CheckDlgButton(hwndWin, ID_CHKBOX_AUTO, chk);
+
+    reg_info_dword (reg_key, "save_checked", FALSE, BST_UNCHECKED, (DWORD*)&save_checked);
+    reg_info_dword (reg_key, "auto_checked", FALSE, BST_UNCHECKED, (DWORD*)&auto_checked);
+    CheckDlgButton(hwndWin, ID_CHKBOX_SAVE, save_checked);
+    CheckDlgButton(hwndWin, ID_CHKBOX_AUTO, auto_checked);
     
 
     reg_info_dword (reg_key, "client_ver_0",             FALSE, 3, (DWORD*)&client_ver_val[0]);
     reg_info_dword (reg_key, "client_ver_1",             FALSE, 50, (DWORD*)&client_ver_val[1]);
     reg_info_dword (reg_key, "dhcp_on",                 FALSE,  1, (DWORD*)&dhcp_on);
     reg_info_dword (reg_key, "ruijie_live_serial_num", FALSE, 0x0000102b, (DWORD*)&ruijie_live_serial_num);
+}
+
+void thread_error_exit(const char *errmsg) 
+{
+    MessageBox (hwndWin, errmsg, NULL, MB_OK);
+    update_interface_state (NULL);
+    ExitThread(0);
 }

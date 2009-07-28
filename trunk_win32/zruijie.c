@@ -60,9 +60,9 @@ uint32_t    local_gateway 	= 0;
 uint32_t    local_dns 		= 0;
 uint8_t     local_mac[ETHER_ADDR_LEN]; /* MAC地址 */
 uint8_t     client_ver_val[2];
-char        devname[256];
+char        devname[MAX_DEV_NAME_LEN];
 
-
+#ifdef  __DEBUG
 // debug function
 void 
 print_hex(const uint8_t *array, int count)
@@ -75,6 +75,7 @@ print_hex(const uint8_t *array, int count)
     }
     printf("\n");
 }
+#endif     /* -----  not __DEBUG  ----- */
 
 /* 
  * ===  FUNCTION  ======================================================================
@@ -195,12 +196,13 @@ void init_device()
     char            filter_exp[51];         /* filter expression [3] */
     pcap_if_t       *alldevs;
 	pcap_if_t 		*d;
-	extern HANDLE    hwndComboList;
+//	extern HANDLE    hwndComboList;
+    extern int      combo_index;
 	
 	/* NIC device  */
 	assert(pcap_findalldevs(&alldevs, errbuf) != -1);
 
-	int sel_index = SendMessage(hwndComboList, CB_GETCURSEL, 0, 0);
+	int sel_index = combo_index;
 
 	d = alldevs;
 	while (sel_index--) 
@@ -215,6 +217,8 @@ void init_device()
 		}
 	}
 	pcap_freealldevs(alldevs);
+
+//    debug_msgbox ("%s", devname);
 	
 	/* Mac */
 	IP_ADAPTER_INFO AdapterInfo[16];			// Allocate information for up to 16 NICs
@@ -224,7 +228,11 @@ void init_device()
 	DWORD dwStatus = GetAdaptersInfo(			// Call GetAdapterInfo
 		AdapterInfo,							// [out] buffer to receive data
 		&dwBufLen);								// [in] size of receive data buffer
-	assert(dwStatus == ERROR_SUCCESS);			// Verify return value is valid, no buffer overflow
+
+	if(dwStatus != ERROR_SUCCESS){			// Verify return value is valid, no buffer overflow
+        thread_error_exit("Invalid Device.[GET Mac Addr]");
+    }
+
 	for (pAdapterInfo = AdapterInfo; pAdapterInfo; pAdapterInfo = pAdapterInfo->Next) {
 		if (strstr (devname, pAdapterInfo->AdapterName) != NULL) {
 		    memcpy(local_mac, pAdapterInfo->Address, ETHER_ADDR_LEN);
@@ -234,10 +242,13 @@ void init_device()
 	
 	/* open capture device */
 	handle = pcap_open_live(devname, SNAP_LEN, 1, 1000, errbuf);
-	assert (handle != NULL); 
+    if (handle == NULL)
+        thread_error_exit("Invalid Device.[Open Live]");
+//	assert (handle != NULL);
 
 	/* make sure we're capturing on an Ethernet device [2] */
-	assert (pcap_datalink(handle) == DLT_EN10MB);
+	if (pcap_datalink(handle) != DLT_EN10MB)
+        thread_error_exit("Invalid Device.[Ethernet]");
 
     /* construct the filter string */
     sprintf(filter_exp, "ether dst %02x:%02x:%02x:%02x:%02x:%02x"
@@ -401,20 +412,24 @@ init_frames()
  *  Description:  显示信息
  * =====================================================================================
  */
-//void 
-//show_local_info ()
-//{
-//    printf("##### zRuijie for GZHU ver. %s ######\n", ZRJ_VER);
-//    printf("Device:     %s\n", devname);
-//    printf("MAC:        %02x:%02x:%02x:%02x:%02x:%02x\n",
-//                        local_mac[0],local_mac[1],local_mac[2],
-//                        local_mac[3],local_mac[4],local_mac[5]);
-//
-//    printf("IP:         %s\n", inet_ntoa(*(struct in_addr*)&local_ip));
-//    printf("MASK:       %s\n", inet_ntoa(*(struct in_addr*)&local_mask));
-//    printf("Gateway:    %s\n", inet_ntoa(*(struct in_addr*)&local_gateway));
-//    printf("DNS:        %s\n", inet_ntoa(*(struct in_addr*)&local_dns));
-//
-//    printf("Client ver: %u.%u\n", client_ver_val[0], client_ver_val[1]);
-//    printf("######################################\n");
-//}
+
+#ifdef  __DEBUG
+void 
+show_local_info ()
+{
+    printf("##### zRuijie for GZHU ver. %s ######\n", ZRJ_VER);
+    printf("Device:     %s\n", devname);
+    printf("MAC:        %02x:%02x:%02x:%02x:%02x:%02x\n",
+                        local_mac[0],local_mac[1],local_mac[2],
+                        local_mac[3],local_mac[4],local_mac[5]);
+
+    printf("IP:         %s\n", inet_ntoa(*(struct in_addr*)&local_ip));
+    printf("MASK:       %s\n", inet_ntoa(*(struct in_addr*)&local_mask));
+    printf("Gateway:    %s\n", inet_ntoa(*(struct in_addr*)&local_gateway));
+    printf("DNS:        %s\n", inet_ntoa(*(struct in_addr*)&local_dns));
+
+    printf("Client ver: %u.%u\n", client_ver_val[0], client_ver_val[1]);
+    printf("######################################\n");
+}
+#endif     /* -----  not __DEBUG  ----- */
+
