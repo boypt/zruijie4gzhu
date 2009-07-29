@@ -7,12 +7,12 @@ WINDRES = i486-mingw32-windres
 RES  = zRuijie4GZHU_private.res
 OBJ  = win_main.o blog.o eap_protocol.o md5.o zruijie.o $(RES)
 LINKOBJ  = win_main.o blog.o eap_protocol.o md5.o zruijie.o $(RES)
-LIBS =  -L"/usr/i486-mingw32/lib" -L"WpdPack/Lib" -mwindows -lcomctl32 -lgdi32 -lwpcap -lws2_32 -liphlpapi  
+LIBS =  -L"/usr/i486-mingw32/lib" -L"WpdPack/Lib" -mwindows -lcomctl32 -lwpcap -lws2_32 -liphlpapi  
 INCS =  -I"/usr/i486-mingw32/include"  -I"WpdPack/Include"
 CXXINCS = 
 BIN  = zRuijie4GZHU.exe
 CXXFLAGS = $(CXXINCS)   -fexpensive-optimizations -O2
-CFLAGS = $(INCS)  -Wall -fexpensive-optimizations -O2
+CFLAGS = $(INCS)  -Wall -O1
 RM = rm -f
 
 .PHONY: all all-before all-after clean clean-custom

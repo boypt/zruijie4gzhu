@@ -131,7 +131,7 @@ INT_PTR CALLBACK DlgProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
                 }
             }
             else if (HIWORD(wParam) == CBN_SELCHANGE) {
-                combo_index = SendMessage(lParam, CB_GETCURSEL, 0, 0);
+                combo_index = SendMessage((HWND)lParam, CB_GETCURSEL, 0, 0);
             }
             break;
         case SWM_TRAYMSG:
