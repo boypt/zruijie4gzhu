@@ -116,6 +116,9 @@ INT_PTR CALLBACK DlgProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
                     case IDC_CHK_AUTO_MIN:
                         auto_min = IsDlgButtonChecked(hwnd, IDC_CHK_AUTO_MIN);
                         reg_info_dword (reg_key, "auto_min", TRUE, auto_min, NULL);
+                        if (auto_min && state == ONLINE && IsWindowVisible(hwnd)) {
+                            ShowWindow(hwnd, SW_HIDE);
+                        }
                         break;
 
                     case SWM_SHOW:
