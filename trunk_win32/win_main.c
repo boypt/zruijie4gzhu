@@ -5,12 +5,12 @@
 #include "commondef.h"
 #include "eap_protocol.h"
 
-#define TRAYICONID	1//				ID number for the Notify Icon
-#define SWM_TRAYMSG	WM_APP//		the message ID sent to our window
+#define TRAYICONID    1//                ID number for the Notify Icon
+#define SWM_TRAYMSG    WM_APP//        the message ID sent to our window
 
-#define SWM_SHOW	WM_APP + 1//	show the window
-#define SWM_HIDE	WM_APP + 2//	hide the window
-#define SWM_EXIT	WM_APP + 3//	close the window
+#define SWM_SHOW    WM_APP + 1//    show the window
+#define SWM_HIDE    WM_APP + 2//    hide the window
+#define SWM_EXIT    WM_APP + 3//    close the window
 #define SWM_CONN    WM_APP + 4
 #define SWM_LOGOFF  WM_APP + 5
 
@@ -41,7 +41,7 @@ int  combo_index;
 
 extern enum STATE state;
 
-NOTIFYICONDATA	niData;	// notify icon data
+NOTIFYICONDATA    niData;    // notify icon data
 
 HWND hwndDlg;
 HWND hwndEditUser;
@@ -110,18 +110,18 @@ void InitProgram ()
     SendMessage(hwndDlg, WM_SETICON, ICON_SMALL, (LPARAM)hIconSm);
 
     /* Add icon to system tray */
-	ZeroMemory(&niData,sizeof(NOTIFYICONDATA));
-	
+    ZeroMemory(&niData,sizeof(NOTIFYICONDATA));
+    
     niData.cbSize = sizeof(NOTIFYICONDATA);
 
-	niData.uID = TRAYICONID;
-	niData.uFlags = NIF_ICON | NIF_MESSAGE | NIF_TIP;
-	niData.hIcon = hIconSm;
-	niData.hWnd = hwndDlg;
+    niData.uID = TRAYICONID;
+    niData.uFlags = NIF_ICON | NIF_MESSAGE | NIF_TIP;
+    niData.hIcon = hIconSm;
+    niData.hWnd = hwndDlg;
     niData.uCallbackMessage = SWM_TRAYMSG;
     lstrcpyn(niData.szTip, TEXT("zRuijie for GZHU"), sizeof(niData.szTip)/sizeof(TCHAR));
 
-	Shell_NotifyIcon(NIM_ADD,&niData);
+    Shell_NotifyIcon(NIM_ADD,&niData);
 
 }
 
@@ -219,9 +219,9 @@ void on_button_connect_clicked (void)
 
 void on_program_quit ()
 {
-	niData.uFlags = 0;
-	Shell_NotifyIcon(NIM_DELETE,&niData);
-	PostQuitMessage(0);
+    niData.uFlags = 0;
+    Shell_NotifyIcon(NIM_DELETE,&niData);
+    PostQuitMessage(0);
 }
 
 void on_close_window_clicked()
@@ -423,29 +423,29 @@ void thread_error_exit(const char *errmsg)
 
 void ShowTrayMenu(HWND hwnd)
 {
-	POINT pt;
-	GetCursorPos(&pt);
-	HMENU hMenu;
+    POINT pt;
+    GetCursorPos(&pt);
+    HMENU hMenu;
 
-	hMenu = CreatePopupMenu();
+    hMenu = CreatePopupMenu();
 
-	if(hMenu)
-	{
-		if( IsWindowVisible(hwnd) )
-			InsertMenu(hMenu, -1, MF_BYPOSITION, SWM_HIDE, TEXT("Hide"));
-		else
-			InsertMenu(hMenu, -1, MF_BYPOSITION, SWM_SHOW, TEXT("Show"));
+    if(hMenu)
+    {
+        if( IsWindowVisible(hwnd) )
+            InsertMenu(hMenu, -1, MF_BYPOSITION, SWM_HIDE, TEXT("Hide"));
+        else
+            InsertMenu(hMenu, -1, MF_BYPOSITION, SWM_SHOW, TEXT("Show"));
         if (state == READY)
-			InsertMenu(hMenu, -1, MF_BYPOSITION, SWM_CONN, TEXT("Connect"));
+            InsertMenu(hMenu, -1, MF_BYPOSITION, SWM_CONN, TEXT("Connect"));
         else
             InsertMenu(hMenu, -1, MF_BYPOSITION, SWM_LOGOFF, TEXT("Log Off"));
-		InsertMenu(hMenu, -1, MF_BYPOSITION, SWM_EXIT, TEXT("Exit"));
-		// note:	must set window to the foreground or the
-		//			menu won't disappear when it should
-		SetForegroundWindow(hwnd);
+        InsertMenu(hMenu, -1, MF_BYPOSITION, SWM_EXIT, TEXT("Exit"));
+        // note:    must set window to the foreground or the
+        //            menu won't disappear when it should
+        SetForegroundWindow(hwnd);
 
-		TrackPopupMenuEx(hMenu, TPM_BOTTOMALIGN | TPM_LEFTBUTTON | TPM_RIGHTBUTTON,
-			pt.x, pt.y, hwnd, NULL );
-		DestroyMenu(hMenu);
-	}
+        TrackPopupMenuEx(hMenu, TPM_BOTTOMALIGN | TPM_LEFTBUTTON | TPM_RIGHTBUTTON,
+            pt.x, pt.y, hwnd, NULL );
+        DestroyMenu(hMenu);
+    }
 }
