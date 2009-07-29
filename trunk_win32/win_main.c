@@ -11,6 +11,8 @@
 #define SWM_SHOW	WM_APP + 1//	show the window
 #define SWM_HIDE	WM_APP + 2//	hide the window
 #define SWM_EXIT	WM_APP + 3//	close the window
+#define SWM_CONN    WM_APP + 4
+#define SWM_LOGOFF  WM_APP + 5
 
 LPCTSTR reg_key = "Software\\ZRuijie4Gzhu";
 
@@ -21,8 +23,7 @@ void        InitProgram ();
 void        init_combo_list();
 void        on_button_connect_clicked (void);
 void        on_button_exit_clicked ();
-void        on_chkbox_save_clicked ();
-void        on_chkbox_auto_clicked ();
+
 void        update_interface_state();
 void        reg_info_dword(LPCTSTR lpSubKey, LPCTSTR val_key, 
                 BOOL ForceWrite, DWORD def_val, DWORD *val);
@@ -34,8 +35,8 @@ void        on_program_quit ();
 void        ShowTrayMenu(HWND hWnd);
 
                         
-BOOL save_checked;
-BOOL auto_checked;
+BOOL auto_con;
+BOOL auto_min;
 int  combo_index;
 
 extern enum STATE state;
@@ -74,12 +75,15 @@ int WINAPI WinMain( HINSTANCE hInstance, HINSTANCE hPrevInstance,
 
     hwndDlg = CreateDialog(hInstance, 
             MAKEINTRESOURCE(IDD_DLG_ZRJ), NULL, DlgProc);
-    InitProgram ();
 
+    InitProgram ();
     init_combo_list();
     init_info();
 
-    while( GetMessage(&msg, NULL, 0, 0)) {
+    if (auto_con) 
+        on_button_connect_clicked();
+
+    while(GetMessage(&msg, NULL, 0, 0)) {
         TranslateMessage(&msg);
         DispatchMessage(&msg);
     }
@@ -130,16 +134,20 @@ INT_PTR CALLBACK DlgProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
                 switch (LOWORD(wParam))
                 {
                     case IDC_BTN_CONN:
+                    case SWM_CONN:
                         on_button_connect_clicked();
                         break;
                     case IDC_BTN_EXIT:
+                    case SWM_LOGOFF:
                         on_button_exit_clicked ();
                         break;
-                    case IDC_CHK_SAVE:
-                        on_chkbox_save_clicked();
+                    case IDC_CHK_AUTO_CON:
+                        auto_con = IsDlgButtonChecked(hwnd, IDC_CHK_AUTO_CON);
+                        reg_info_dword (reg_key, "auto_con", TRUE, auto_con, NULL);
                         break;
-                    case IDC_CHK_AUTO:
-                        on_chkbox_auto_clicked();
+                    case IDC_CHK_AUTO_MIN:
+                        auto_min = IsDlgButtonChecked(hwnd, IDC_CHK_AUTO_MIN);
+                        reg_info_dword (reg_key, "auto_min", TRUE, auto_min, NULL);
                         break;
 
                     case SWM_SHOW:
@@ -162,7 +170,10 @@ INT_PTR CALLBACK DlgProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
             switch(lParam)
             {
                 case WM_LBUTTONDBLCLK:
-                    ShowWindow(hwnd, SW_RESTORE);
+                    if (IsWindowVisible(hwnd))
+                        ShowWindow(hwnd, SW_HIDE);
+                    else
+                        ShowWindow(hwnd, SW_RESTORE);
                     break;
                 case WM_RBUTTONDOWN:
                 case WM_CONTEXTMENU:
@@ -191,15 +202,11 @@ void on_button_connect_clicked (void)
         GetWindowText(hwndEditUser, username, username_length + 1);
         GetWindowText(hwndEditPass, password, password_length + 1);
         
-        if (save_checked) {
-            reg_info_string (reg_key, "usr", TRUE, username, NULL, 0);
-            reg_info_string (reg_key, "psw", TRUE, password, NULL, 0);
-        }
+        reg_info_string (reg_key, "usr", TRUE, username, NULL, 0);
+        reg_info_string (reg_key, "psw", TRUE, password, NULL, 0);
     }
     
     reg_info_dword (reg_key, "if_index", TRUE, combo_index, NULL);
-    reg_info_dword (reg_key, "save_checked", TRUE, save_checked, NULL);
-    reg_info_dword (reg_key, "auto_checked", TRUE, auto_checked, NULL);
     
     EnableWindow (hwndButtonConn, FALSE);
     EnableWindow (hwndEditUser, FALSE);
@@ -233,29 +240,6 @@ void on_button_exit_clicked ()
         send_eap_packet (EAPOL_LOGOFF);
 }
 
-void on_chkbox_save_clicked()
-{
-    BOOL savechek = IsDlgButtonChecked(hwndDlg, IDC_CHK_SAVE);
-
-    if (savechek == BST_UNCHECKED && auto_checked == BST_CHECKED) {
-        CheckDlgButton(hwndDlg, IDC_CHK_AUTO, BST_UNCHECKED);
-    }
-
-    save_checked = IsDlgButtonChecked(hwndDlg, IDC_CHK_SAVE);
-    auto_checked = IsDlgButtonChecked(hwndDlg, IDC_CHK_AUTO);
-}
-
-void on_chkbox_auto_clicked()
-{
-    BOOL savechek = IsDlgButtonChecked(hwndDlg, IDC_CHK_SAVE);
-
-    if (savechek == BST_UNCHECKED) 
-        CheckDlgButton(hwndDlg, IDC_CHK_SAVE, BST_CHECKED);
-    
-    save_checked = IsDlgButtonChecked(hwndDlg, IDC_CHK_SAVE);
-    auto_checked = IsDlgButtonChecked(hwndDlg, IDC_CHK_AUTO);
-}
-
 DWORD WINAPI eap_thread()
 {
     extern pcap_t *handle;
@@ -282,6 +266,8 @@ void update_interface_state(const char *msg)
         EnableWindow (hwndEditUser, TRUE);
         EnableWindow (hwndEditPass, TRUE);
         EnableWindow (hwndComboList, TRUE);
+        if (!IsWindowVisible(hwndDlg))
+            ShowWindow(hwndDlg, SW_RESTORE);
     }
     else if (state == CONNECTING) {
         SetWindowText (hwndButtonConn, TEXT("Connecting..."));
@@ -289,7 +275,9 @@ void update_interface_state(const char *msg)
     }
     else if (state == ONLINE) {
         SetWindowText (hwndButtonConn, TEXT("Connected"));
-        SetWindowText (hwndButtonExit, TEXT("Logoff"));
+        /* if auto hide */
+        if (auto_min && IsWindowVisible(hwndDlg))
+            ShowWindow(hwndDlg, SW_HIDE);        
     }
     else if (state == LOGOFF) {
         SetWindowText (hwndButtonConn, TEXT(msg));
@@ -415,12 +403,11 @@ void init_info()
     }
     
 
-    reg_info_dword (reg_key, "save_checked", FALSE, BST_UNCHECKED, (DWORD*)&save_checked);
-    reg_info_dword (reg_key, "auto_checked", FALSE, BST_UNCHECKED, (DWORD*)&auto_checked);
-    CheckDlgButton(hwndDlg, IDC_CHK_SAVE, save_checked);
-    CheckDlgButton(hwndDlg, IDC_CHK_AUTO, auto_checked);
+    reg_info_dword (reg_key, "auto_con", FALSE, BST_UNCHECKED, (DWORD*)&auto_con);
+    reg_info_dword (reg_key, "auto_min", FALSE, BST_UNCHECKED, (DWORD*)&auto_min);
+    CheckDlgButton(hwndDlg, IDC_CHK_AUTO_CON, auto_con);
+    CheckDlgButton(hwndDlg, IDC_CHK_AUTO_MIN, auto_min);
     
-
     reg_info_dword (reg_key, "client_ver_0",             FALSE, 3, (DWORD*)&client_ver_val[0]);
     reg_info_dword (reg_key, "client_ver_1",             FALSE, 50, (DWORD*)&client_ver_val[1]);
     reg_info_dword (reg_key, "dhcp_on",                 FALSE,  1, (DWORD*)&dhcp_on);
@@ -434,26 +421,31 @@ void thread_error_exit(const char *errmsg)
     ExitThread(0);
 }
 
-void ShowTrayMenu(HWND hWnd)
+void ShowTrayMenu(HWND hwnd)
 {
 	POINT pt;
 	GetCursorPos(&pt);
 	HMENU hMenu;
+
 	hMenu = CreatePopupMenu();
-//	hMenu = LoadMenu (hInst, MAKEINTRESOURCE(IDR_MENU_TRAY));
+
 	if(hMenu)
 	{
-		if( IsWindowVisible(hWnd) )
+		if( IsWindowVisible(hwnd) )
 			InsertMenu(hMenu, -1, MF_BYPOSITION, SWM_HIDE, TEXT("Hide"));
 		else
 			InsertMenu(hMenu, -1, MF_BYPOSITION, SWM_SHOW, TEXT("Show"));
+        if (state == READY)
+			InsertMenu(hMenu, -1, MF_BYPOSITION, SWM_CONN, TEXT("Connect"));
+        else
+            InsertMenu(hMenu, -1, MF_BYPOSITION, SWM_LOGOFF, TEXT("Log Off"));
 		InsertMenu(hMenu, -1, MF_BYPOSITION, SWM_EXIT, TEXT("Exit"));
 		// note:	must set window to the foreground or the
 		//			menu won't disappear when it should
-		SetForegroundWindow(hWnd);
+		SetForegroundWindow(hwnd);
 
 		TrackPopupMenuEx(hMenu, TPM_BOTTOMALIGN | TPM_LEFTBUTTON | TPM_RIGHTBUTTON,
-			pt.x, pt.y, hWnd, NULL );
+			pt.x, pt.y, hwnd, NULL );
 		DestroyMenu(hMenu);
 	}
 }
