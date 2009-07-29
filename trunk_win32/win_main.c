@@ -5,11 +5,19 @@
 #include "commondef.h"
 #include "eap_protocol.h"
 
+#define TRAYICONID	1//				ID number for the Notify Icon
+#define SWM_TRAYMSG	WM_APP//		the message ID sent to our window
+
+#define SWM_SHOW	WM_APP + 1//	show the window
+#define SWM_HIDE	WM_APP + 2//	hide the window
+#define SWM_EXIT	WM_APP + 3//	close the window
+
 LPCTSTR reg_key = "Software\\ZRuijie4Gzhu";
 
 INT_PTR     CALLBACK DlgProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam);
 DWORD       WINAPI eap_thread();
 
+void        InitProgram ();
 void        init_combo_list();
 void        on_button_connect_clicked (void);
 void        on_button_exit_clicked ();
@@ -21,12 +29,18 @@ void        reg_info_dword(LPCTSTR lpSubKey, LPCTSTR val_key,
 DWORD       reg_info_string (LPCTSTR lpSubKey, LPCTSTR val_key,  BOOL write,
                 const char *def_val, char *val, DWORD val_len);
 void        init_info();
+void        on_close_window_clicked();
+void        on_program_quit ();
+void        ShowTrayMenu(HWND hWnd);
+
                         
 BOOL save_checked;
 BOOL auto_checked;
 int  combo_index;
 
 extern enum STATE state;
+
+NOTIFYICONDATA	niData;	// notify icon data
 
 HWND hwndDlg;
 HWND hwndEditUser;
@@ -55,12 +69,26 @@ int WINAPI WinMain( HINSTANCE hInstance, HINSTANCE hPrevInstance,
         LPSTR lpCmdLine, int nCmdShow )
 {
     MSG  msg ;
-    HICON hIcon, hIconSm;
 
     InitCommonControls();
 
     hwndDlg = CreateDialog(hInstance, 
             MAKEINTRESOURCE(IDD_DLG_ZRJ), NULL, DlgProc);
+    InitProgram ();
+
+    init_combo_list();
+    init_info();
+
+    while( GetMessage(&msg, NULL, 0, 0)) {
+        TranslateMessage(&msg);
+        DispatchMessage(&msg);
+    }
+    return (int) msg.wParam;
+}
+
+void InitProgram ()
+{
+    HICON hIcon, hIconSm;
 
     hwndEditUser = GetDlgItem (hwndDlg, IDC_EDT_USR);
     hwndEditPass = GetDlgItem (hwndDlg, IDC_EDT_PAS);
@@ -73,50 +101,80 @@ int WINAPI WinMain( HINSTANCE hInstance, HINSTANCE hPrevInstance,
     hIconSm = LoadImage(GetModuleHandle(NULL), 
             MAKEINTRESOURCE(IDI_ICON_RJ), IMAGE_ICON, 16, 16, 0);
 
+    //set application icon
     SendMessage(hwndDlg, WM_SETICON, ICON_BIG, (LPARAM)hIcon);
     SendMessage(hwndDlg, WM_SETICON, ICON_SMALL, (LPARAM)hIconSm);
 
-    init_combo_list();
-    init_info();
+    /* Add icon to system tray */
+	ZeroMemory(&niData,sizeof(NOTIFYICONDATA));
+	
+    niData.cbSize = sizeof(NOTIFYICONDATA);
 
-    while( GetMessage(&msg, NULL, 0, 0)) {
-        TranslateMessage(&msg);
-        DispatchMessage(&msg);
-    }
-    return (int) msg.wParam;
+	niData.uID = TRAYICONID;
+	niData.uFlags = NIF_ICON | NIF_MESSAGE | NIF_TIP;
+	niData.hIcon = hIconSm;
+	niData.hWnd = hwndDlg;
+    niData.uCallbackMessage = SWM_TRAYMSG;
+    lstrcpyn(niData.szTip, TEXT("zRuijie for GZHU"), sizeof(niData.szTip)/sizeof(TCHAR));
+
+	Shell_NotifyIcon(NIM_ADD,&niData);
+
 }
 
 INT_PTR CALLBACK DlgProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 {
-  switch(msg)
-  {
-    case WM_COMMAND:
-        if (HIWORD(wParam) == BN_CLICKED) {
-            switch (LOWORD(wParam))
+    switch(msg)
+    {
+        case WM_COMMAND:
+            if (HIWORD(wParam) == BN_CLICKED) {
+                switch (LOWORD(wParam))
+                {
+                    case IDC_BTN_CONN:
+                        on_button_connect_clicked();
+                        break;
+                    case IDC_BTN_EXIT:
+                        on_button_exit_clicked ();
+                        break;
+                    case IDC_CHK_SAVE:
+                        on_chkbox_save_clicked();
+                        break;
+                    case IDC_CHK_AUTO:
+                        on_chkbox_auto_clicked();
+                        break;
+
+                    case SWM_SHOW:
+                        ShowWindow(hwnd, SW_RESTORE);
+                        break;
+                    case SWM_HIDE:
+                    case IDOK:
+                        ShowWindow(hwnd, SW_HIDE);
+                        break;
+                    case SWM_EXIT:
+                        on_program_quit();
+                        break;
+                }
+            }
+            else if (HIWORD(wParam) == CBN_SELCHANGE) {
+                combo_index = SendMessage(lParam, CB_GETCURSEL, 0, 0);
+            }
+            break;
+        case SWM_TRAYMSG:
+            switch(lParam)
             {
-                case IDC_BTN_CONN:
-                    on_button_connect_clicked();
+                case WM_LBUTTONDBLCLK:
+                    ShowWindow(hwnd, SW_RESTORE);
                     break;
-                case IDC_BTN_EXIT:
-                    on_button_exit_clicked ();
-                    break;
-                case IDC_CHK_SAVE:
-                    on_chkbox_save_clicked();
-                    break;
-                case IDC_CHK_AUTO:
-                    on_chkbox_auto_clicked();
+                case WM_RBUTTONDOWN:
+                case WM_CONTEXTMENU:
+                    ShowTrayMenu(hwnd);
                     break;
             }
-        }
-        else if (HIWORD(wParam) == CBN_SELCHANGE) {
-            combo_index = SendMessage(hwndComboList, CB_GETCURSEL, 0, 0);
-        }
-        break;
-    case WM_CLOSE:
-         PostQuitMessage (0);
-         break;
-  }
-  return FALSE;
+            break;
+        case WM_CLOSE:
+            on_close_window_clicked();
+            break;
+    }
+    return FALSE;
 }
 
 void on_button_connect_clicked (void)
@@ -152,10 +210,25 @@ void on_button_connect_clicked (void)
 
 }
 
+void on_program_quit ()
+{
+	niData.uFlags = 0;
+	Shell_NotifyIcon(NIM_DELETE,&niData);
+	PostQuitMessage(0);
+}
+
+void on_close_window_clicked()
+{
+    if (state == READY) 
+        on_program_quit();
+    else
+        ShowWindow (hwndDlg, SW_HIDE);
+}
+
 void on_button_exit_clicked ()
 {
     if (state == READY)
-        PostQuitMessage(0);
+        on_program_quit();
     else
         send_eap_packet (EAPOL_LOGOFF);
 }
@@ -359,4 +432,28 @@ void thread_error_exit(const char *errmsg)
     MessageBox (hwndDlg, errmsg, NULL, MB_OK);
     update_interface_state (NULL);
     ExitThread(0);
+}
+
+void ShowTrayMenu(HWND hWnd)
+{
+	POINT pt;
+	GetCursorPos(&pt);
+	HMENU hMenu;
+	hMenu = CreatePopupMenu();
+//	hMenu = LoadMenu (hInst, MAKEINTRESOURCE(IDR_MENU_TRAY));
+	if(hMenu)
+	{
+		if( IsWindowVisible(hWnd) )
+			InsertMenu(hMenu, -1, MF_BYPOSITION, SWM_HIDE, TEXT("Hide"));
+		else
+			InsertMenu(hMenu, -1, MF_BYPOSITION, SWM_SHOW, TEXT("Show"));
+		InsertMenu(hMenu, -1, MF_BYPOSITION, SWM_EXIT, TEXT("Exit"));
+		// note:	must set window to the foreground or the
+		//			menu won't disappear when it should
+		SetForegroundWindow(hWnd);
+
+		TrackPopupMenuEx(hMenu, TPM_BOTTOMALIGN | TPM_LEFTBUTTON | TPM_RIGHTBUTTON,
+			pt.x, pt.y, hWnd, NULL );
+		DestroyMenu(hMenu);
+	}
 }
