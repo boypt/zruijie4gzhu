@@ -80,6 +80,7 @@ int WINAPI WinMain( HINSTANCE hInstance, HINSTANCE hPrevInstance,
     init_combo_list();
     init_info();
 
+    edit_info_append (">>Ready.\n");
     if (auto_con) 
         on_button_connect_clicked();
 
@@ -270,13 +271,16 @@ void update_interface_state(const char *msg)
         EnableWindow (hwndComboList, TRUE);
         if (!IsWindowVisible(hwndDlg))
             ShowWindow(hwndDlg, SW_RESTORE);
+        edit_info_append (">>Loged Off.\n");
     }
     else if (state == CONNECTING) {
         SetWindowText (hwndButtonConn, TEXT("Connecting..."));
         SetWindowText (hwndButtonExit, TEXT("Logoff"));
+        edit_info_append (">>Connecting...\n");
     }
     else if (state == ONLINE) {
         SetWindowText (hwndButtonConn, TEXT("Connected"));
+        edit_info_append (">> Online.\n");        
         /* if auto hide */
         if (auto_min && IsWindowVisible(hwndDlg))
             ShowWindow(hwndDlg, SW_HIDE);        
@@ -284,6 +288,7 @@ void update_interface_state(const char *msg)
     else if (state == LOGOFF) {
         SetWindowText (hwndButtonConn, TEXT(msg));
         EnableWindow (hwndButtonExit, FALSE);
+        edit_info_append (">>");
     }
 }
 
