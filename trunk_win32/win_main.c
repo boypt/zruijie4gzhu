@@ -84,45 +84,12 @@ int WINAPI WinMain( HINSTANCE hInstance, HINSTANCE hPrevInstance,
         on_button_connect_clicked();
 
     while(GetMessage(&msg, NULL, 0, 0)) {
+        if(IsDialogMessage(hwndDlg, &msg))
+            continue;
         TranslateMessage(&msg);
         DispatchMessage(&msg);
     }
     return (int) msg.wParam;
-}
-
-void InitProgram ()
-{
-    HICON hIcon, hIconSm;
-
-    hwndEditUser = GetDlgItem (hwndDlg, IDC_EDT_USR);
-    hwndEditPass = GetDlgItem (hwndDlg, IDC_EDT_PAS);
-    hwndButtonConn = GetDlgItem (hwndDlg, IDC_BTN_CONN);
-    hwndButtonExit = GetDlgItem (hwndDlg, IDC_BTN_EXIT);
-    hwndComboList = GetDlgItem (hwndDlg, IDC_CBO_LIST);
-
-    hIcon = LoadImage(GetModuleHandle(NULL), 
-            MAKEINTRESOURCE(IDI_ICON_RJ), IMAGE_ICON, 32, 32, 0);
-    hIconSm = LoadImage(GetModuleHandle(NULL), 
-            MAKEINTRESOURCE(IDI_ICON_RJ), IMAGE_ICON, 16, 16, 0);
-
-    //set application icon
-    SendMessage(hwndDlg, WM_SETICON, ICON_BIG, (LPARAM)hIcon);
-    SendMessage(hwndDlg, WM_SETICON, ICON_SMALL, (LPARAM)hIconSm);
-
-    /* Add icon to system tray */
-    ZeroMemory(&niData,sizeof(NOTIFYICONDATA));
-    
-    niData.cbSize = sizeof(NOTIFYICONDATA);
-
-    niData.uID = TRAYICONID;
-    niData.uFlags = NIF_ICON | NIF_MESSAGE | NIF_TIP;
-    niData.hIcon = hIconSm;
-    niData.hWnd = hwndDlg;
-    niData.uCallbackMessage = SWM_TRAYMSG;
-    lstrcpyn(niData.szTip, TEXT("zRuijie for GZHU"), sizeof(niData.szTip)/sizeof(TCHAR));
-
-    Shell_NotifyIcon(NIM_ADD,&niData);
-
 }
 
 INT_PTR CALLBACK DlgProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
@@ -186,6 +153,41 @@ INT_PTR CALLBACK DlgProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
             break;
     }
     return FALSE;
+}
+
+void InitProgram ()
+{
+    HICON hIcon, hIconSm;
+
+    hwndEditUser = GetDlgItem (hwndDlg, IDC_EDT_USR);
+    hwndEditPass = GetDlgItem (hwndDlg, IDC_EDT_PAS);
+    hwndButtonConn = GetDlgItem (hwndDlg, IDC_BTN_CONN);
+    hwndButtonExit = GetDlgItem (hwndDlg, IDC_BTN_EXIT);
+    hwndComboList = GetDlgItem (hwndDlg, IDC_CBO_LIST);
+
+    hIcon = LoadImage(GetModuleHandle(NULL), 
+            MAKEINTRESOURCE(IDI_ICON_RJ), IMAGE_ICON, 32, 32, 0);
+    hIconSm = LoadImage(GetModuleHandle(NULL), 
+            MAKEINTRESOURCE(IDI_ICON_RJ), IMAGE_ICON, 16, 16, 0);
+
+    //set application icon
+    SendMessage(hwndDlg, WM_SETICON, ICON_BIG, (LPARAM)hIcon);
+    SendMessage(hwndDlg, WM_SETICON, ICON_SMALL, (LPARAM)hIconSm);
+
+    /* Add icon to system tray */
+    ZeroMemory(&niData,sizeof(NOTIFYICONDATA));
+    
+    niData.cbSize = sizeof(NOTIFYICONDATA);
+
+    niData.uID = TRAYICONID;
+    niData.uFlags = NIF_ICON | NIF_MESSAGE | NIF_TIP;
+    niData.hIcon = hIconSm;
+    niData.hWnd = hwndDlg;
+    niData.uCallbackMessage = SWM_TRAYMSG;
+    lstrcpyn(niData.szTip, TEXT("zRuijie for GZHU"), sizeof(niData.szTip)/sizeof(TCHAR));
+
+    Shell_NotifyIcon(NIM_ADD,&niData);
+
 }
 
 void on_button_connect_clicked (void)
