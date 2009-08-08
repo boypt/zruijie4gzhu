@@ -38,8 +38,8 @@ IDR_XPMANIFEST1 MANIFEST "xpmanifest.xml"
 IDI_ICON_RJ ICON DISCARDABLE "zRuijie4GZHU.ico"
 
 IDR_VERSION1 VERSIONINFO
-FILEVERSION 2,0,0,9
-PRODUCTVERSION 1,0,0,0
+FILEVERSION 0,2,0,0
+PRODUCTVERSION 0,2,0,0
 FILEOS 0x00000004
 FILETYPE 0x00000000
 BEGIN
@@ -48,7 +48,7 @@ BEGIN
     BLOCK "FFFF0000"
     BEGIN
       VALUE "FileVersion", "2.0.0.9\0"
-      VALUE "ProductVersion", "1.0.0.0\0"
+      VALUE "ProductVersion", "0.2.0.0\0"
       VALUE "CompanyName", "PT Work. http://apt-blog.net\0"
       VALUE "FileDescription", "Shanzhai Ruijie Client.\0"
       VALUE "LegalCopyright", "MIT Licences\0"

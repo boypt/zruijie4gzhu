@@ -5,6 +5,8 @@
 #include "commondef.h"
 #include "eap_protocol.h"
 
+#define DIALOG_TITLE "zRuijie4GZHU 0.2"
+
 #define REG_KEY_IF_INDEX    "if_index"
 #define REG_KEY_IF_NAME     "if_name"
 #define REG_KEY_USER        "usr"
@@ -31,7 +33,7 @@ LPCTSTR reg_key = "Software\\ZRuijie4Gzhu";
 INT_PTR     CALLBACK DlgProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam);
 DWORD       WINAPI eap_thread();
 
-void        InitProgram ();
+void        InitProgram (HINSTANCE hInst);
 void        init_combo_list();
 void        on_button_connect_clicked (void);
 void        on_button_exit_clicked ();
@@ -84,11 +86,7 @@ int WINAPI WinMain( HINSTANCE hInstance, HINSTANCE hPrevInstance,
     MSG  msg ;
 
     InitCommonControls();
-
-    hwndDlg = CreateDialog(hInstance, 
-            MAKEINTRESOURCE(IDD_DLG_ZRJ), NULL, DlgProc);
-
-    InitProgram ();
+    InitProgram (hInstance);
     init_combo_list();
     init_info();
 
@@ -172,9 +170,12 @@ INT_PTR CALLBACK DlgProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
     return FALSE;
 }
 
-void InitProgram ()
+void InitProgram (HINSTANCE hInst)
 {
     HICON hIcon, hIconSm;
+    
+    hwndDlg = CreateDialog(hInst, 
+            MAKEINTRESOURCE(IDD_DLG_ZRJ), NULL, DlgProc);
 
     hwndEditUser = GetDlgItem (hwndDlg, IDC_EDT_USR);
     hwndEditPass = GetDlgItem (hwndDlg, IDC_EDT_PAS);
@@ -190,6 +191,9 @@ void InitProgram ()
     //set application icon
     SendMessage(hwndDlg, WM_SETICON, ICON_BIG, (LPARAM)hIcon);
     SendMessage(hwndDlg, WM_SETICON, ICON_SMALL, (LPARAM)hIconSm);
+
+    SendMessage(hwndDlg, WM_SETTEXT, NULL, (LPARAM)DIALOG_TITLE);
+
 
     /* Add icon to system tray */
     ZeroMemory(&niData,sizeof(NOTIFYICONDATA));
@@ -423,7 +427,6 @@ void init_info()
         password_length = strlen (password);
         Edit_SetText (hwndEditUser, TEXT(username));
         Edit_SetText (hwndEditPass, TEXT(password));
-//        MessageBox (NULL, username, NULL, NULL);
     }
     
 
