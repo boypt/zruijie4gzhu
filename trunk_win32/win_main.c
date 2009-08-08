@@ -93,6 +93,7 @@ int WINAPI WinMain( HINSTANCE hInstance, HINSTANCE hPrevInstance,
     init_info();
 
     edit_info_append (">>Ready.\n");
+
     if (auto_con) 
         on_button_connect_clicked();
 
@@ -226,6 +227,10 @@ void on_button_connect_clicked (void)
     
     reg_info_dword (reg_key, REG_KEY_IF_INDEX, TRUE, combo_index, NULL);
 
+    char    combo_if_name[512] = {0};
+    ComboBox_GetLBText (hwndComboList, combo_index, combo_if_name);
+    reg_info_string (reg_key, REG_KEY_IF_NAME, TRUE, combo_if_name, NULL, 0);
+    
     EnableWindow (hwndButtonConn, FALSE);
     EnableWindow (hwndEditUser, FALSE);
     EnableWindow (hwndEditPass, FALSE);
@@ -407,12 +412,12 @@ DWORD reg_info_string (LPCTSTR lpSubKey, LPCTSTR val_key,  BOOL write,
 
 void init_info()
 {
-    extern uint32_t  ruijie_live_serial_num;
-    extern uint8_t   client_ver_val[];
-    extern char      username[];
+    extern uint32_t     ruijie_live_serial_num;
+    extern uint8_t      client_ver_val[];
+    extern char         username[];
     extern char         password[];
     extern int          username_length, password_length;
-    extern int         dhcp_on;
+    extern int          dhcp_on;
     
     if ((reg_info_string 
             (reg_key, REG_KEY_USER, FALSE, NULL, username, 64) == ERROR_SUCCESS) &&
@@ -436,18 +441,17 @@ void init_info()
     reg_info_dword (reg_key, REG_KEY_DHCP,                 FALSE,  1, (DWORD*)&dhcp_on);
     reg_info_dword (reg_key, REG_KEY_SER_NUM, FALSE, 0x0000102b, (DWORD*)&ruijie_live_serial_num);
 
+    /* 判断注册表里面 */
+    char    register_if_name[512] = {0};
+    char    combo_if_name[512] = {0};
 
-    char    choosen_name[512] = {0};
-    char    registed_name[512] = {0};
-    
-    reg_info_string (reg_key, REG_KEY_IF_NAME, FALSE, NULL, registed_name, 0);
-    ComboBox_GetLBText (hwndComboList, combo_index, choosen_name);
+    reg_info_string (reg_key, REG_KEY_IF_NAME, FALSE, NULL, register_if_name, 512);
+    ComboBox_GetLBText (hwndComboList, combo_index, combo_if_name);
 
-    if (strcmp(choosen_name, registed_name) != 0) {
-        reg_info_string (reg_key, REG_KEY_IF_NAME, TRUE, choosen_name, NULL, 0);
+    if (strcmp(register_if_name, combo_if_name) != 0) {
+        reg_info_string (reg_key, REG_KEY_IF_NAME, TRUE, combo_if_name, NULL, 0);
         auto_con = FALSE;
     }
-
 }
 
 void thread_error_exit(const char *errmsg) 
