@@ -43,7 +43,7 @@ print_server_info (const uint8_t *packet);
 void
 print_notification_msg(const uint8_t *packet);
 
-uint32_t
+u_int32_t
 get_ruijie_success_key (const uint8_t *success_packet);
 
 void 

@@ -20,40 +20,38 @@
 #ifndef  COMMONDEF_INC
 #define  COMMONDEF_INC
 
+typedef unsigned char uint8_t;
+typedef unsigned int uint32_t;
+typedef unsigned short uint16_t;
 #include <pcap.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <stdint.h>
-
 #include <string.h>
 #include <ctype.h>
 #include <errno.h>
+#include <assert.h>
 
-#include <sys/types.h>
-#include <sys/socket.h>
-#include <sys/ioctl.h>
-#include <sys/stat.h>
-
-#include <netinet/in.h>
-#include <arpa/inet.h>
-#include <net/if.h>
-#include <net/ethernet.h>
-
-#include <getopt.h>
-#include <iconv.h>
-
+#include <winsock2.h>
+#include <iphlpapi.h>
 /* ZRuijie Version */
 #define ZRJ_VER "0.5"
+
+#define MAX_DEV_NAME_LEN 256
 
 /* default snap length (maximum bytes per packet to capture) */
 #define SNAP_LEN 1518
 
 /* ethernet headers are always exactly 14 bytes [1] */
 #define SIZE_ETHERNET 14
-#define	OFFSET_EAPOL    0x0E			/*  */
+#define OFFSET_EAPOL    0x0E                    /*  */
 #define OFFSET_EAP      0x12
 
 #define ETHER_ADDR_LEN 6
+
+struct ether_header
+{
+  u_int8_t  ether_dhost[ETHER_ADDR_LEN];      /* destination eth addr */
+  u_int8_t  ether_shost[ETHER_ADDR_LEN];      /* source ether addr    */
+  u_int16_t ether_type;                 /* packet type ID field */
+};
 
 struct eap_header {
     u_char eapol_v;
@@ -79,14 +77,14 @@ enum EAPType {
     EAP_SUCCESS,
     EAP_FAILURE,
     RUIJIE_EAPOL_MSG,
-    ERROR
+    OTHER_ERROR
 };
 
 enum STATE {
-   READY,
-   STARTED,
-   ID_AUTHED,
-   ONLINE
+    READY,
+    CONNECTING,
+    ONLINE,
+	LOGOFF
 };
 
 typedef union
@@ -102,14 +100,20 @@ void    daemon_init(void);
 void*   thread_wait_exit (void *arg);
 
 /* #####   FUNCTION DEFINITIONS  -  EXPORTED FUNCTIONS   ############################ */
-/* zruijie.c内实现，调用的函数*/
+/* zruijie.c内实现，调用的函数**/
 void    init_frames();
-void    init_info();
+//void    init_info();
 void    init_device();
 void    show_local_info();
 void    get_packet(u_char *args, const struct pcap_pkthdr *header, 
                         const u_char *packet);
 void    print_hex(const uint8_t *array, int count);
+
+void update_interface_state(const char *msg);
+void edit_info_append (const char *msg);
+void thread_error_exit (const char *errmsg);
+void debug_msgbox (const char *fmt, ...);
+
 #endif   /* ----- #ifndef COMMONDEF_INC  ----- */
 
 

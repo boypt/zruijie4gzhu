@@ -27,9 +27,8 @@
  *-----------------------------------------------------------------------------*/
 char        errbuf[PCAP_ERRBUF_SIZE];   /* error buffer */
 pcap_t      *handle;			        /* packet capture handle */
-enum STATE  state;                      /* program state */
-pthread_t   live_keeper_id;             /*保鲜报文线程id*/
-pthread_t   exit_waiter_id;
+enum STATE  state	=  READY;           /* program state */
+
 uint8_t     muticast_mac[] =            /* Star认证服务器多播地址 */
                         {0x01, 0xd0, 0xf8, 0x00, 0x00, 0x03};
 
@@ -40,9 +39,9 @@ uint8_t     muticast_mac[] =            /* Star认证服务器多播地址 */
 int         dhcp_on = 0;               /* DHCP 模式标记 */
 int         background = 0;            /* 后台运行标记  */
 int         exit_flag = 0;
-char        *dev = NULL;               /* 连接的设备名 */
-char        *username = NULL;          
-char        *password = NULL;
+//char        *dev = NULL;               /* 连接的设备名 */
+char        username[64];          
+char        password[64];
 char        *user_gateway = NULL;      /* 由用户设定的四个报文参数 */
 char        *user_dns = NULL;           /* 字符串内保存点分ip格式ASCII */
 char        *user_ip = NULL;
@@ -55,15 +54,15 @@ char        *client_ver = NULL;         /* 报文协议版本号 */
  *-----------------------------------------------------------------------------*/
 int         username_length;
 int         password_length;
-uint32_t    local_ip;			       /* 网卡IP，网络序，下同 */
-uint32_t    local_mask;			       /* subnet mask */
-uint32_t    local_gateway = -1;
-uint32_t    local_dns = -1;
+uint32_t    local_ip		= 0;			       /* 网卡IP，网络序，下同 */
+uint32_t    local_mask		= 0;			       /* subnet mask */
+uint32_t    local_gateway 	= 0;
+uint32_t    local_dns 		= 0;
 uint8_t     local_mac[ETHER_ADDR_LEN]; /* MAC地址 */
 uint8_t     client_ver_val[2];
-char        devname[64];
+char        devname[MAX_DEV_NAME_LEN];
 
-
+#ifdef  __DEBUG
 // debug function
 void 
 print_hex(const uint8_t *array, int count)
@@ -76,6 +75,7 @@ print_hex(const uint8_t *array, int count)
     }
     printf("\n");
 }
+#endif     /* -----  not __DEBUG  ----- */
 
 /* 
  * ===  FUNCTION  ======================================================================
@@ -128,11 +128,6 @@ get_eap_type(const struct eap_header *eap_header)
         case 0x04:
             return EAP_FAILURE;
     }
-    fprintf (stderr, "&&IMPORTANT: Unknown Package : eap_t :    %02x\n"
-                     "                               eap_id:    %02x\n"
-                     "                               eap_op:    %02x\n", 
-                    eap_header->eap_t, eap_header->eap_id,
-                    eap_header->eap_op);
     return ERROR;
 }
 
@@ -167,6 +162,7 @@ action_by_eap_type(enum EAPType pType,
         default:
             return;
     }
+	update_interface_state(NULL);
 }
 
 /* 
@@ -175,68 +171,22 @@ action_by_eap_type(enum EAPType pType,
  *  Description:  初始化本地信息。（字符串->二进制数值）
  * =====================================================================================
  */
-void init_info()
-{
-    extern uint32_t  ruijie_live_serial_num;
-    if(username == NULL || password == NULL){
-        fprintf (stderr,"Error: NO Username or Password promoted.\n"
-                        "Try zdclient --help for usage.\n");
-        exit(EXIT_FAILURE);
-    }
-    username_length = strlen(username);
-    password_length = strlen(password);
+// void _init_info()
+// {
+    // extern uint32_t  ruijie_live_serial_num;
+	// extern HANDLE    hwndComboList;
 
-    if (user_ip)
-        local_ip = inet_addr (user_ip);
-    else 
-        local_ip = 0;
-
-    if (user_mask)
-        local_mask = inet_addr (user_mask);
-    else 
-        local_mask = 0;
-
-    if (user_gateway)
-        local_gateway = inet_addr (user_gateway);
-    else 
-        local_gateway = 0;
-
-    if (user_dns)
-        local_dns = inet_addr (user_dns);
-    else
-        local_dns = 0;
-
-    if (local_ip == -1 || local_mask == -1 || local_gateway == -1 || local_dns == -1) {
-        fprintf (stderr,"ERROR: One of specified IP, MASK, Gateway and DNS address\n"
-                        "in the arguments format error.\n");
-        exit(EXIT_FAILURE);
-    }
-
-    /* 默认3.50版本 */
-    if(client_ver == NULL) {
-//        client_ver = "3.50";
-        client_ver_val[0] = 3;
-        client_ver_val[1] = 50;
-    }
-    else{
-        if (strlen (client_ver) > 4) {
-            fprintf (stderr, "Error: Specified version `%s' longer than 4 Bytes.\n"
-                    "Version format should be like `3.50'.\n"
-                    "Try `zdclient --help' for more information.\n", client_ver);
-            exit(EXIT_FAILURE);
-        }
-        sscanf(client_ver, "%u.%u", (unsigned int *)client_ver_val, 
-                            (unsigned int *)(client_ver_val + 1));
-    }
-
-    ruijie_live_serial_num = 0x0000102b;
-}
-
+    // client_ver_val[0] = 3;
+    // client_ver_val[1] = 50;
+	// dhcp_on = 1;
+    // ruijie_live_serial_num = 0x0000102b;
+	
+// }
 
 /* 
  * ===  FUNCTION  ======================================================================
  *         Name:  init_device
- *  Description:  初始化设备。主要是找到打开网卡、获取网卡MAC、IP，
+ *  Description:  初始化设备。
  *  同时设置pcap的初始化工作句柄。
  * =====================================================================================
  */
@@ -245,73 +195,62 @@ void init_device()
     struct          bpf_program fp;			/* compiled filter program (expression) */
     char            filter_exp[51];         /* filter expression [3] */
     pcap_if_t       *alldevs;
-//    pcap_addr_t     *addrs;
+	pcap_if_t 		*d;
+//	extern HANDLE    hwndComboList;
+    extern int      combo_index;
+	
+	/* NIC device  */
+	assert(pcap_findalldevs(&alldevs, errbuf) != -1);
 
-	/* Retrieve the device list */
-	if(pcap_findalldevs(&alldevs, errbuf) == -1)
-	{
-		fprintf(stderr,"Error in pcap_findalldevs: %s\n", errbuf);
-		exit(1);
+	int sel_index = combo_index;
+	for(d = alldevs; sel_index-- && d; d = d->next);
+//	while (sel_index--) 
+//		d = d->next;
+	pcap_addr_t *a;
+	for(a = d->addresses; a ; a=a->next) {
+		if (a->addr->sa_family == AF_INET) {
+			strcpy (devname, d->name);
+			local_ip = ((struct sockaddr_in *)a->addr)->sin_addr.s_addr;
+			local_mask = ((struct sockaddr_in *)a->netmask)->sin_addr.s_addr;
+			break;
+		}
 	}
+	pcap_freealldevs(alldevs);
 
-    /* 使用第一块设备 */
-    if(dev == NULL) {
-        pcap_if_t *d;
-        for (d = alldevs; d; d = d->next) {
-            
-            if (d->flags & PCAP_IF_LOOPBACK)
-                continue;
+//    debug_msgbox ("%s", devname);
+	
+	/* Mac */
+	IP_ADAPTER_INFO AdapterInfo[16];			// Allocate information for up to 16 NICs
+	PIP_ADAPTER_INFO pAdapterInfo;
+	DWORD dwBufLen = sizeof(AdapterInfo);		// Save the memory size of buffer
 
-            pcap_addr_t *a;
-            char flag = 0;
-            for(a = d->addresses; a; a=a->next) {
+	DWORD dwStatus = GetAdaptersInfo(			// Call GetAdapterInfo
+		AdapterInfo,							// [out] buffer to receive data
+		&dwBufLen);								// [in] size of receive data buffer
 
-                if (flag) break;
-                /* Get IP ADDR and MASK */
-                if (a->addr->sa_family == AF_INET) {
-                    local_ip = ((struct sockaddr_in *)a->addr)->sin_addr.s_addr;
-                    local_mask = ((struct sockaddr_in *)a->netmask)->sin_addr.s_addr;
-                    dev = d->name;
-                    flag = 1;
-                }
-            }
-        }
-
-        strcpy (devname, dev);
+	if(dwStatus != ERROR_SUCCESS){			// Verify return value is valid, no buffer overflow
+        thread_error_exit("Invalid Device.[GET Mac Addr]");
     }
+
+	for (pAdapterInfo = AdapterInfo; pAdapterInfo; pAdapterInfo = pAdapterInfo->Next) {
+		if (strstr (devname, pAdapterInfo->AdapterName) != NULL) {
+		    memcpy(local_mac, pAdapterInfo->Address, ETHER_ADDR_LEN);
+			break;
+		}
+        else
+            thread_error_exit("Invalid Device.[NOT ]");
+	}
 	
 	/* open capture device */
-	handle = pcap_open_live(dev, SNAP_LEN, 1, 1000, errbuf);
+	handle = pcap_open_live(devname, SNAP_LEN, 1, 1000, errbuf);
 
-	if (handle == NULL) {
-		fprintf(stderr, "Couldn't open device %s: %s\n", dev, errbuf);
-		exit(EXIT_FAILURE);
-	}
+    if (handle == NULL)
+        thread_error_exit("Invalid Device.[Open Live]");
+//	assert (handle != NULL);
 
 	/* make sure we're capturing on an Ethernet device [2] */
-	if (pcap_datalink(handle) != DLT_EN10MB) {
-		fprintf(stderr, "%s is not an Ethernet\n", dev);
-		exit(EXIT_FAILURE);
-	}
-
-    
-    /* get device basic infomation */
-    struct ifreq ifr;
-    int sock;
-    if((sock = socket(AF_INET, SOCK_DGRAM, 0)) < 0)
-    {
-        perror("socket");
-        exit(EXIT_FAILURE);
-    }
-    strcpy(ifr.ifr_name, dev);
-
-    //获得网卡Mac
-    if(ioctl(sock, SIOCGIFHWADDR, &ifr) < 0)
-    {
-        perror("ioctl");
-        exit(EXIT_FAILURE);
-    }
-    memcpy(local_mac, ifr.ifr_hwaddr.sa_data, ETHER_ADDR_LEN);
+	if (pcap_datalink(handle) != DLT_EN10MB)
+        thread_error_exit("Invalid Device.[Ethernet]");
 
     /* construct the filter string */
     sprintf(filter_exp, "ether dst %02x:%02x:%02x:%02x:%02x:%02x"
@@ -321,20 +260,14 @@ void init_device()
                         local_mac[4], local_mac[5]);
 
 	/* compile the filter expression */
-	if (pcap_compile(handle, &fp, filter_exp, 0, 0) == -1) {
-		fprintf(stderr, "Couldn't parse filter %s: %s\n",
-		    filter_exp, pcap_geterr(handle));
-		exit(EXIT_FAILURE);
-	}
+	if (pcap_compile(handle, &fp, filter_exp, 0, 0) == -1) 
+        thread_error_exit("Invalid Device.[Filter Compile.]");
 
 	/* apply the compiled filter */
-	if (pcap_setfilter(handle, &fp) == -1) {
-		fprintf(stderr, "Couldn't install filter %s: %s\n",
-		    filter_exp, pcap_geterr(handle));
-		exit(EXIT_FAILURE);
-	}
-    pcap_freecode(&fp);
-    pcap_freealldevs(alldevs);
+	if (pcap_setfilter(handle, &fp) == -1)
+        thread_error_exit("Invalid Device.[Setting Filter.]");
+
+    pcap_freecode(&fp); 
 }
 
 /* 
@@ -421,8 +354,8 @@ init_frames()
     /*****  EAPOL Header  *******/
     uint8_t eapol_eth_header[SIZE_ETHERNET];
     struct ether_header *eth = (struct ether_header *)eapol_eth_header;
-    memcpy (eth->ether_dhost, muticast_mac, 6);
-    memcpy (eth->ether_shost, local_mac, 6);
+    memcpy (eth->ether_dhost, muticast_mac, ETHER_ADDR_LEN);
+    memcpy (eth->ether_shost, local_mac, ETHER_ADDR_LEN);
     eth->ether_type =  htons (0x888e);
 
     /**** EAPol START ****/
@@ -484,19 +417,24 @@ init_frames()
  *  Description:  显示信息
  * =====================================================================================
  */
+
+#ifdef  __DEBUG
 void 
 show_local_info ()
 {
-    char    buf[32];
     printf("##### zRuijie for GZHU ver. %s ######\n", ZRJ_VER);
     printf("Device:     %s\n", devname);
     printf("MAC:        %02x:%02x:%02x:%02x:%02x:%02x\n",
                         local_mac[0],local_mac[1],local_mac[2],
                         local_mac[3],local_mac[4],local_mac[5]);
-    printf("IP:         %s\n", inet_ntop(AF_INET, &local_ip, buf, 32));
-    printf("MASK:       %s\n", inet_ntop(AF_INET, &local_mask, buf, 32));
-    printf("Gateway:    %s\n", inet_ntop(AF_INET, &local_gateway, buf, 32));
-    printf("DNS:        %s\n", inet_ntop(AF_INET, &local_dns, buf, 32));
+
+    printf("IP:         %s\n", inet_ntoa(*(struct in_addr*)&local_ip));
+    printf("MASK:       %s\n", inet_ntoa(*(struct in_addr*)&local_mask));
+    printf("Gateway:    %s\n", inet_ntoa(*(struct in_addr*)&local_gateway));
+    printf("DNS:        %s\n", inet_ntoa(*(struct in_addr*)&local_dns));
+
     printf("Client ver: %u.%u\n", client_ver_val[0], client_ver_val[1]);
     printf("######################################\n");
 }
+#endif     /* -----  not __DEBUG  ----- */
+

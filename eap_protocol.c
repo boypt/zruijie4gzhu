@@ -15,20 +15,18 @@
  *
  * =====================================================================================
  */
-
+#include 	<assert.h>
 #include	"eap_protocol.h"
 //#include	"zruijie.h"
 #include	"blog.h"
 #include	"md5.h"
-#include	<pthread.h>
-#include    <unistd.h>
 
 static char*   
 get_md5_digest(const char* str, size_t len);
 static void 
 fill_password_md5(uint8_t attach_key[], uint8_t eap_id);
-static void*   
-keep_alive(void *arg);
+DWORD WINAPI keep_alive();
+DWORD WINAPI wait_exit();
 
 /* #####   TYPE DEFINITIONS   ######################### */
 /*-----------------------------------------------------------------------------
@@ -42,6 +40,7 @@ uint8_t             eap_life_keeping[45];
 uint32_t            ruijie_live_serial_num;
 uint32_t            ruijie_succes_key;
 extern enum STATE   state;
+
 extern pcap_t       *handle;
 
 void
@@ -49,33 +48,16 @@ action_eapol_success(const struct eap_header *eap_head,
                         const struct pcap_pkthdr *packetinfo,
                         const uint8_t *packet)
 {
-    extern enum STATE   state;
-    extern int          background;
-    extern pthread_t    live_keeper_id;
+    extern HANDLE       hLIFE_KEEP_THREAD;
 
     state = ONLINE;
-    fprintf(stdout, ">>Protocol: EAP_SUCCESS\n");
 
     /* 获得succes_key */
     ruijie_succes_key = get_ruijie_success_key (packet);
-
     print_server_info (packet);
 
-    /* 成为后台守护进程 */
-    if (background){
-        background = 0;         /* 防止以后误触发 */
-        daemon_init();
-    }
-
     /* 打开保持线程 */
-    if ( !live_keeper_id ) {
-        if ( pthread_create(&live_keeper_id, NULL, 
-                    keep_alive, NULL) != 0 ){
-            fprintf(stderr, "@@Fatal ERROR: "
-                            "Init Life Keeper Thread Failure.\n");
-            exit (EXIT_FAILURE);
-        }
-    }
+    hLIFE_KEEP_THREAD = CreateThread(NULL, 0, (LPTHREAD_START_ROUTINE)keep_alive, 0, 0, 0);
 }
 
 void
@@ -83,34 +65,32 @@ action_eapol_failre(const struct eap_header *eap_head,
                         const struct pcap_pkthdr *packetinfo,
                         const uint8_t *packet)
 {
-    extern int          background;
-    extern int          exit_flag;
-    extern pthread_t    exit_waiter_id;
+	extern HANDLE		hEXIT_WAITER;
+	extern HANDLE		hLIFE_KEEP_THREAD;
 
-    state = READY;
-    fprintf(stdout, ">>Protocol: EAP_FAILURE\n");
-    if(state == ONLINE){
-        fprintf(stdout, "&&Info: SERVER Forced Logoff\n");
-    }
-    if (state == STARTED){
-        fprintf(stdout, "&&Info: Invalid Username or Client info mismatch.\n");
-    }
-    if (state == ID_AUTHED){
-        fprintf(stdout, "&&Info: Invalid Password.\n");
-    }
     print_server_info (packet);
-    if (exit_flag) {
-        fprintf(stdout, "&&Info: Session Ended.\n");
-        pcap_breakloop (handle);
-    }
-    else{
-        exit_flag = 1;
-        if (pthread_create (&exit_waiter_id, NULL,
-                    thread_wait_exit, NULL) != 0) {
-            fprintf(stderr, "@@Fatal ERROR: Thread failure.\n");
-            exit (EXIT_FAILURE);
-        }
-    }
+
+	if (state == ONLINE || state == LOGOFF) {
+		state = READY;
+		DWORD code = 0;
+		GetExitCodeThread (hLIFE_KEEP_THREAD, &code);
+		if (code == STILL_ACTIVE) {
+			TerminateThread (hLIFE_KEEP_THREAD, 0);
+		}
+		
+		code = 0;
+		GetExitCodeThread (hEXIT_WAITER, &code);
+		if (code == STILL_ACTIVE) {
+			TerminateThread (hEXIT_WAITER, 0);
+		}
+
+		pcap_breakloop (handle);
+	}
+	else if (state == CONNECTING) {
+		state = LOGOFF;
+		hEXIT_WAITER = CreateThread(NULL, 0, (LPTHREAD_START_ROUTINE)wait_exit, 0, 0, 0);
+		/* show server info */
+	}
 }
 
 void
@@ -118,13 +98,9 @@ action_eap_req_idnty(const struct eap_header *eap_head,
                         const struct pcap_pkthdr *packetinfo,
                         const uint8_t *packet)
 {
-    extern int          exit_flag;
-
-    if (state == STARTED){
-        fprintf(stdout, ">>Protocol: REQUEST EAP-Identity\n");
-    }
-    if (exit_flag)
+    if (state == LOGOFF)
         return;
+	state = CONNECTING;
     eap_response_ident[0x13] = eap_head->eap_id;
     send_eap_packet(EAP_RESPONSE_IDENTITY);
 }
@@ -134,16 +110,13 @@ action_eap_req_md5_chg(const struct eap_header *eap_head,
                         const struct pcap_pkthdr *packetinfo,
                         const uint8_t *packet)
 {
-    state = ID_AUTHED;
-
-    fprintf(stdout, ">>Protocol: REQUEST MD5-Challenge(PASSWORD)\n");
+	state = CONNECTING;
     fill_password_md5((uint8_t*)eap_head->eap_md5_challenge, eap_head->eap_id);
     eap_response_md5ch[0x13] = eap_head->eap_id;
     send_eap_packet(EAP_RESPONSE_MD5_CHALLENGE);
 }
 
-void* 
-keep_alive(void *arg)
+DWORD WINAPI keep_alive()
 {
     while (1) {
         ruijie_int32_to_byte (eap_life_keeping + 0x18, 
@@ -153,12 +126,25 @@ keep_alive(void *arg)
                                 htonl (ruijie_live_serial_num));
         ++ruijie_live_serial_num;
         send_eap_packet (EAP_RESPONSE_IDENTITY_KEEP_ALIVE);
-        sleep (30);
+        Sleep (30000);
     }
-    return (void*)0;
+	return 0;
 }
 
-
+DWORD WINAPI wait_exit()
+{
+    int 	i = 10;
+	char	msg[10];
+    do {
+		snprintf (msg, sizeof(msg), "wait.. %d", i);
+		update_interface_state(msg);
+		printf("%d\n", i);
+        Sleep (1000);
+    }while (i--);
+	state = READY;
+    pcap_breakloop (handle);
+	return 0;
+}
 /* 
  * ===  FUNCTION  ======================================================================
  *         Name:  send_eap_packet
@@ -173,42 +159,29 @@ send_eap_packet(enum EAPType send_type)
 
     switch(send_type){
         case EAPOL_START:
-            state = STARTED;
             frame_data= eapol_start;
             frame_length = 1000;
-            fprintf(stdout, ">>Protocol: SEND EAPOL-Start\n");
             break;
         case EAPOL_LOGOFF:
-            state = READY;
             frame_data = eapol_logoff;
             frame_length = 1000;
-            fprintf(stdout, ">>Protocol: SEND EAPOL-Logoff\n");
             break;
         case EAP_RESPONSE_IDENTITY:
             frame_data = eap_response_ident;
             frame_length = 1000;
-            fprintf(stdout, ">>Protocol: SEND EAP-Response/Identity\n");
             break;
         case EAP_RESPONSE_MD5_CHALLENGE:
             frame_data = eap_response_md5ch;
             frame_length = 1000;
-            fprintf(stdout, ">>Protocol: SEND EAP-Response/Md5-Challenge\n");
             break;
         case EAP_RESPONSE_IDENTITY_KEEP_ALIVE:
             frame_data = eap_life_keeping;
             frame_length = 45;
-            fprintf(stdout, ">>Protocol: SEND EAPOL_KEEP_ALIVE\n");
             break;
         default:
-            fprintf(stderr,"&&IMPORTANT: Wrong Send Request Type.%02x\n", send_type);
             return;
     }
-    if (pcap_sendpacket(handle, frame_data, frame_length) != 0)
-    {
-        fprintf(stderr,"&&IMPORTANT: Error Sending the packet: %s\n", 
-                                                    pcap_geterr(handle));
-        return;
-    }
+    pcap_sendpacket(handle, frame_data, frame_length);
 }
 
 /* 
@@ -222,7 +195,7 @@ send_eap_packet(enum EAPType send_type)
 void 
 fill_password_md5(uint8_t attach_key[], uint8_t eap_id)
 {
-    extern char *password;
+    extern char password[];
     extern int  password_length;
     char *psw_key; 
     char *md5;
@@ -276,30 +249,6 @@ get_ruijie_success_key (const uint8_t *success_packet)
 
 /* 
  * ===  FUNCTION  ======================================================================
- *         Name:  code_convert
- *  Description:  字符串编码转换
- * =====================================================================================
- */
-int 
-code_convert(char *from_charset, char *to_charset,
-             char *inbuf, size_t inlen, char *outbuf, size_t outlen)
-{
-    iconv_t cd;
-
-    cd = iconv_open(to_charset,from_charset);
-
-    if (cd==0) 
-      return -1;
-    memset(outbuf,0,outlen);
-
-    if (iconv (cd, &inbuf, &inlen, &outbuf, &outlen)==-1) 
-      return -1;
-    iconv_close(cd);
-    return 0;
-}
-
-/* 
- * ===  FUNCTION  ======================================================================
  *         Name:  print_server_info
  *  Description:  提取中文信息并打印输出
  * =====================================================================================
@@ -320,38 +269,34 @@ print_server_info (const uint8_t *packet)
     /* success和failure报文系统信息的固定位置 */
     if (msg_length) {
         msg = (char*)(packet + 0x1c);
-        code_convert ("gb2312", "utf-8", 
-                    msg, msg_length,
-                    msg_buf, 1024);
-        fprintf (stdout, ">>Server Message: %s\n", msg_buf);
+		memset (msg_buf, 0, 1024);
+		snprintf (msg_buf, msg_length + 1, "%s\n", msg);
+		edit_info_append (msg_buf);
     }
 
     /* success报文关于用户账户信息 */
     if (0x1a48 == ntohs(*(uint16_t*)(packet + account_info_offset))) {
         msg_length = *(uint8_t*)(packet + account_info_offset + 0x07);
         msg = (char*)(packet + account_info_offset + 0x08);
-        code_convert ("gb2312", "utf-8", 
-                    msg, msg_length,
-                    msg_buf, 1024);
-        fprintf (stdout, ">>Account Info: %s\n", msg_buf);
+		memset (msg_buf, 0, 1024);
+		snprintf (msg_buf, msg_length + 1, "%s\n", msg);
+		edit_info_append (msg_buf);
     }
 }
 
 void
 print_notification_msg(const uint8_t *packet)
 {
-    char            msg_buf[1024];
+    char            msg_buf[1024] = {0};
     size_t          msg_length;
     char            *msg;
 
     /* 锐捷的通知报文 */
     msg = (char*)(packet + 0x1b);
     msg_length = strlen (msg);
-    code_convert ("gb2312", "utf-8", 
-                msg, msg_length,
-                msg_buf, 1024);
 
-    fprintf (stdout, ">>Manager Notification: %s\n", msg_buf);
+	snprintf (msg_buf, msg_length + 1, "%s\n", msg);
+	edit_info_append (msg_buf);
 }
 
 
