@@ -5,6 +5,18 @@
 #include "commondef.h"
 #include "eap_protocol.h"
 
+#define REG_KEY_IF_INDEX    "if_index"
+#define REG_KEY_IF_NAME     "if_name"
+#define REG_KEY_USER        "usr"
+#define REG_KEY_PASS        "psw"
+#define REG_KEY_AUTO_CON    "auto_con"
+#define REG_KEY_AUTO_MIN    "auto_min"
+#define REG_KEY_DHCP        "dhcp_on"
+#define REG_KEY_VER0        "client_ver_0"
+#define REG_KEY_VER1        "client_ver_1"
+#define REG_KEY_SER_NUM     "ruijie_live_serial_num"
+
+
 #define TRAYICONID    1//                ID number for the Notify Icon
 #define SWM_TRAYMSG    WM_APP//        the message ID sent to our window
 
@@ -35,24 +47,24 @@ void        on_program_quit ();
 void        ShowTrayMenu(HWND hWnd);
 
                         
-BOOL auto_con;
-BOOL auto_min;
-int  combo_index;
+BOOL                auto_con;
+BOOL                auto_min;
+int                 combo_index;
 
-extern enum STATE state;
+extern enum         STATE state;
 
-NOTIFYICONDATA    niData;    // notify icon data
+NOTIFYICONDATA      niData;    // notify icon data
 
-HWND hwndDlg;
-HWND hwndEditUser;
-HWND hwndEditPass;
-HWND hwndButtonConn;
-HWND hwndButtonExit;
-HWND hwndComboList;
+HWND                hwndDlg;
+HWND                hwndEditUser;
+HWND                hwndEditPass;
+HWND                hwndButtonConn;
+HWND                hwndButtonExit;
+HWND                hwndComboList;
 
-HANDLE hEAP_THREAD;
-HANDLE hLIFE_KEEP_THREAD;
-HANDLE hEXIT_WAITER;
+HANDLE              hEAP_THREAD;
+HANDLE              hLIFE_KEEP_THREAD;
+HANDLE              hEXIT_WAITER;
 
 #ifdef  __DEBUG
 void debug_msgbox (const char *fmt, ...)
@@ -111,14 +123,14 @@ INT_PTR CALLBACK DlgProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
                         break;
                     case IDC_CHK_AUTO_CON:
                         auto_con = IsDlgButtonChecked(hwnd, IDC_CHK_AUTO_CON);
-                        reg_info_dword (reg_key, "auto_con", TRUE, auto_con, NULL);
+                        reg_info_dword (reg_key, REG_KEY_AUTO_CON, TRUE, auto_con, NULL);
                         break;
                     case IDC_CHK_AUTO_MIN:
                         auto_min = IsDlgButtonChecked(hwnd, IDC_CHK_AUTO_MIN);
-                        reg_info_dword (reg_key, "auto_min", TRUE, auto_min, NULL);
-                        if (auto_min && state == ONLINE && IsWindowVisible(hwnd)) {
-                            ShowWindow(hwnd, SW_HIDE);
-                        }
+                        reg_info_dword (reg_key, REG_KEY_AUTO_MIN, TRUE, auto_min, NULL);
+//                        if (auto_min && state == ONLINE && IsWindowVisible(hwnd)) {
+//                            ShowWindow(hwnd, SW_HIDE);
+//                        }
                         break;
 
                     case SWM_SHOW:
@@ -208,12 +220,12 @@ void on_button_connect_clicked (void)
         GetWindowText(hwndEditUser, username, username_length + 1);
         GetWindowText(hwndEditPass, password, password_length + 1);
         
-        reg_info_string (reg_key, "usr", TRUE, username, NULL, 0);
-        reg_info_string (reg_key, "psw", TRUE, password, NULL, 0);
+        reg_info_string (reg_key, REG_KEY_USER, TRUE, username, NULL, 0);
+        reg_info_string (reg_key, REG_KEY_PASS, TRUE, password, NULL, 0);
     }
     
-    reg_info_dword (reg_key, "if_index", TRUE, combo_index, NULL);
-    
+    reg_info_dword (reg_key, REG_KEY_IF_INDEX, TRUE, combo_index, NULL);
+
     EnableWindow (hwndButtonConn, FALSE);
     EnableWindow (hwndEditUser, FALSE);
     EnableWindow (hwndEditPass, FALSE);
@@ -299,12 +311,13 @@ void init_combo_list()
 {
     char            errbuf[PCAP_ERRBUF_SIZE];   /* error buffer */
     pcap_if_t       *alldevs;
-    pcap_if_t         *d;
+    pcap_if_t       *d;
     pcap_addr_t     *a;
     BOOL            flag = FALSE;
     int             i = 0;
     int             index;
-    
+
+
     /* Retrieve the device list */
     assert(pcap_findalldevs(&alldevs, errbuf) != -1);
 
@@ -322,13 +335,13 @@ void init_combo_list()
     }
     pcap_freealldevs(alldevs);
     
-    reg_info_dword (reg_key, "if_index", FALSE, index, (DWORD*)&combo_index);
+    reg_info_dword (reg_key, REG_KEY_IF_INDEX, FALSE, index, (DWORD*)&combo_index);
 
+    /* 注册表中的 */
     if (index == combo_index)
         SendMessage(hwndComboList, CB_SETCURSEL, (WPARAM)index, 0);
-    else
+    else 
         SendMessage(hwndComboList, CB_SETCURSEL, (WPARAM)combo_index, 0);
-        
 }
 
 void edit_info_append (const char *msg)
@@ -402,9 +415,9 @@ void init_info()
     extern int         dhcp_on;
     
     if ((reg_info_string 
-            (reg_key, "usr", FALSE, NULL, username, 64) == ERROR_SUCCESS) &&
+            (reg_key, REG_KEY_USER, FALSE, NULL, username, 64) == ERROR_SUCCESS) &&
         (reg_info_string
-            (reg_key, "psw", FALSE, NULL, password, 64) == ERROR_SUCCESS)){
+            (reg_key, REG_KEY_PASS, FALSE, NULL, password, 64) == ERROR_SUCCESS)){
         username_length = strlen (username);
         password_length = strlen (password);
         Edit_SetText (hwndEditUser, TEXT(username));
@@ -413,15 +426,28 @@ void init_info()
     }
     
 
-    reg_info_dword (reg_key, "auto_con", FALSE, BST_UNCHECKED, (DWORD*)&auto_con);
-    reg_info_dword (reg_key, "auto_min", FALSE, BST_UNCHECKED, (DWORD*)&auto_min);
+    reg_info_dword (reg_key, REG_KEY_AUTO_CON, FALSE, BST_UNCHECKED, (DWORD*)&auto_con);
+    reg_info_dword (reg_key, REG_KEY_AUTO_MIN, FALSE, BST_UNCHECKED, (DWORD*)&auto_min);
     CheckDlgButton(hwndDlg, IDC_CHK_AUTO_CON, auto_con);
     CheckDlgButton(hwndDlg, IDC_CHK_AUTO_MIN, auto_min);
     
-    reg_info_dword (reg_key, "client_ver_0",             FALSE, 3, (DWORD*)&client_ver_val[0]);
-    reg_info_dword (reg_key, "client_ver_1",             FALSE, 50, (DWORD*)&client_ver_val[1]);
-    reg_info_dword (reg_key, "dhcp_on",                 FALSE,  1, (DWORD*)&dhcp_on);
-    reg_info_dword (reg_key, "ruijie_live_serial_num", FALSE, 0x0000102b, (DWORD*)&ruijie_live_serial_num);
+    reg_info_dword (reg_key, REG_KEY_VER0,             FALSE, 3, (DWORD*)&client_ver_val[0]);
+    reg_info_dword (reg_key, REG_KEY_VER1,             FALSE, 50, (DWORD*)&client_ver_val[1]);
+    reg_info_dword (reg_key, REG_KEY_DHCP,                 FALSE,  1, (DWORD*)&dhcp_on);
+    reg_info_dword (reg_key, REG_KEY_SER_NUM, FALSE, 0x0000102b, (DWORD*)&ruijie_live_serial_num);
+
+
+    char    choosen_name[512] = {0};
+    char    registed_name[512] = {0};
+    
+    reg_info_string (reg_key, REG_KEY_IF_NAME, FALSE, NULL, registed_name, 0);
+    ComboBox_GetLBText (hwndComboList, combo_index, choosen_name);
+
+    if (strcmp(choosen_name, registed_name) != 0) {
+        reg_info_string (reg_key, REG_KEY_IF_NAME, TRUE, choosen_name, NULL, 0);
+        auto_con = FALSE;
+    }
+
 }
 
 void thread_error_exit(const char *errmsg) 

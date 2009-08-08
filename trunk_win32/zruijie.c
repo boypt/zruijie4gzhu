@@ -203,10 +203,9 @@ void init_device()
 	assert(pcap_findalldevs(&alldevs, errbuf) != -1);
 
 	int sel_index = combo_index;
-
-	d = alldevs;
-	while (sel_index--) 
-		d = d->next;
+	for(d = alldevs; sel_index-- && d; d = d->next);
+//	while (sel_index--) 
+//		d = d->next;
 	pcap_addr_t *a;
 	for(a = d->addresses; a ; a=a->next) {
 		if (a->addr->sa_family == AF_INET) {
@@ -238,10 +237,13 @@ void init_device()
 		    memcpy(local_mac, pAdapterInfo->Address, ETHER_ADDR_LEN);
 			break;
 		}
+        else
+            thread_error_exit("Invalid Device.[NOT ]");
 	}
 	
 	/* open capture device */
 	handle = pcap_open_live(devname, SNAP_LEN, 1, 1000, errbuf);
+
     if (handle == NULL)
         thread_error_exit("Invalid Device.[Open Live]");
 //	assert (handle != NULL);
@@ -258,10 +260,13 @@ void init_device()
                         local_mac[4], local_mac[5]);
 
 	/* compile the filter expression */
-	assert (pcap_compile(handle, &fp, filter_exp, 0, 0) != -1);
+	if (pcap_compile(handle, &fp, filter_exp, 0, 0) == -1) 
+        thread_error_exit("Invalid Device.[Filter Compile.]");
 
 	/* apply the compiled filter */
-	assert (pcap_setfilter(handle, &fp) != -1);
+	if (pcap_setfilter(handle, &fp) == -1)
+        thread_error_exit("Invalid Device.[Setting Filter.]");
+
     pcap_freecode(&fp); 
 }
 
