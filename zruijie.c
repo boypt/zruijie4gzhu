@@ -213,8 +213,11 @@ void init_info()
     }
 
     /* 默认3.50版本 */
-    if(client_ver == NULL)
-        client_ver = "3.50";
+    if(client_ver == NULL) {
+//        client_ver = "3.50";
+        client_ver_val[0] = 3;
+        client_ver_val[1] = 50;
+    }
     else{
         if (strlen (client_ver) > 4) {
             fprintf (stderr, "Error: Specified version `%s' longer than 4 Bytes.\n"
@@ -222,9 +225,9 @@ void init_info()
                     "Try `zdclient --help' for more information.\n", client_ver);
             exit(EXIT_FAILURE);
         }
+        sscanf(client_ver, "%u.%u", (unsigned int *)client_ver_val, 
+                            (unsigned int *)(client_ver_val + 1));
     }
-    sscanf(client_ver, "%u.%u", (unsigned int *)client_ver_val, 
-                                (unsigned int *)(client_ver_val + 1));
 
     ruijie_live_serial_num = 0x0000102b;
 }
@@ -348,7 +351,7 @@ init_frames()
     extern uint8_t      eap_response_ident[]; /* EAP RESPON/IDENTITY报文 */
     extern uint8_t      eap_response_md5ch[]; /* EAP RESPON/MD5 报文 */
     extern uint8_t      eap_life_keeping[];   /* EAPOL KEEP ALIVE*/
-    uint8_t             circle_sum[2];
+//    uint8_t             circle_sum[2];
     int                 data_index;
 
     //Ruijie OEM Extra （V2.56）  by soar
@@ -408,12 +411,12 @@ init_frames()
     ruijie_int32_to_byte (RuijieExtra + 0x11, local_dns);
 
     /* 计算信息体的环校验码 */
-    InitializeBlog (RuijieExtra);
-    Blog (circle_sum);
+//    InitializeBlog (RuijieExtra);
+    Blog (RuijieExtra);
 
     /* 填入校验码 */
-    RuijieExtra[0x15] = Alog(circle_sum[0]);
-    RuijieExtra[0x16] = Alog(circle_sum[1]);
+//    RuijieExtra[0x15] = Alog(circle_sum[0]);
+//    RuijieExtra[0x16] = Alog(circle_sum[1]);
 
     /*****  EAPOL Header  *******/
     uint8_t eapol_eth_header[SIZE_ETHERNET];
@@ -425,16 +428,16 @@ init_frames()
     /**** EAPol START ****/
     uint8_t start_data[4] = {0x01, 0x01, 0x00, 0x00};
     memset (eapol_start, 0, 1000);
-    memcpy (eapol_start, eapol_eth_header, 14);
-    memcpy (eapol_start + 14, start_data, 4);
-    memcpy (eapol_start + 18, RuijieExtra, sizeof(RuijieExtra));
+    memcpy (eapol_start, eapol_eth_header, SIZE_ETHERNET);
+    memcpy (eapol_start + OFFSET_EAPOL, start_data, sizeof(start_data));
+    memcpy (eapol_start + OFFSET_EAP, RuijieExtra, sizeof(RuijieExtra));
 
     /****EAPol LOGOFF ****/
     uint8_t logoff_data[4] = {0x01, 0x02, 0x00, 0x00};
     memset (eapol_logoff, 0, 1000);
-    memcpy (eapol_logoff, eapol_eth_header, 14);
-    memcpy (eapol_logoff + 14, logoff_data, 4);
-    memcpy (eapol_logoff + 18, RuijieExtra, sizeof(RuijieExtra));
+    memcpy (eapol_logoff, eapol_eth_header, SIZE_ETHERNET);
+    memcpy (eapol_logoff + OFFSET_EAPOL, logoff_data, sizeof(logoff_data));
+    memcpy (eapol_logoff + OFFSET_EAP, RuijieExtra, sizeof(RuijieExtra));
 
 
     /* EAP RESPONSE IDENTITY */
@@ -444,10 +447,10 @@ init_frames()
                                     0x00, 5 + username_length, /* eap_length */
                                     0x01};
     data_index = 0;
-    memcpy (eap_response_ident + data_index, eapol_eth_header, 14);
-    data_index += 14;
-    memcpy (eap_response_ident + data_index, eap_resp_iden_head, 9);
-    data_index += 9;
+    memcpy (eap_response_ident + data_index, eapol_eth_header, SIZE_ETHERNET);
+    data_index += SIZE_ETHERNET;
+    memcpy (eap_response_ident + data_index, eap_resp_iden_head, sizeof(eap_resp_iden_head));
+    data_index += sizeof(eap_resp_iden_head);
     memcpy (eap_response_ident + data_index, username, username_length);
     data_index += username_length;
     memcpy (eap_response_ident + data_index, RuijieExtra, sizeof(RuijieExtra));
@@ -459,10 +462,10 @@ init_frames()
                                    0x00, 6 + 16 + username_length,/* eap-length */
                                    0x04, 0x10};
     data_index = 0;
-    memcpy (eap_response_md5ch + data_index, eapol_eth_header, 14);
-    data_index += 14;
-    memcpy (eap_response_md5ch + data_index, eap_resp_md5_head, 10);
-    data_index += 26;// 剩余16位在收到REQ/MD5报文后由fill_password_md5填充 
+    memcpy (eap_response_md5ch + data_index, eapol_eth_header, SIZE_ETHERNET);
+    data_index += SIZE_ETHERNET;
+    memcpy (eap_response_md5ch + data_index, eap_resp_md5_head, sizeof(eap_resp_md5_head));
+    data_index += sizeof(eap_resp_md5_head) + 16;// 剩余16位在收到REQ/MD5报文后由fill_password_md5填充 
     memcpy (eap_response_md5ch + data_index, username, username_length);
     data_index += username_length;
     memcpy (eap_response_md5ch + data_index, RuijieExtra, sizeof(RuijieExtra));
@@ -472,7 +475,7 @@ init_frames()
     uint8_t ruijie_life_keep[] = {0x01,0xBF, 0x00,0x1E,
     0xFF,0xFF,0x37,0x77,0x7F,0x9F,0xF7,0xFF,0x00,0x00,0xFF,0xFF,0x37,0x77,
     0x7F,0x9F,0xF7,0xFF,0x00,0x00,0xFF,0xFF,0x37,0x77,0x7F,0x3F,0xFF};
-    memcpy (eap_life_keeping + 14, ruijie_life_keep, 31);
+    memcpy (eap_life_keeping + OFFSET_EAPOL, ruijie_life_keep, sizeof(ruijie_life_keep));
 }
 
 /* 
