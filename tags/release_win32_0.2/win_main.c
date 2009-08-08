@@ -446,18 +446,16 @@ void init_info()
     reg_info_dword (reg_key, REG_KEY_DHCP,                 FALSE,  1, (DWORD*)&dhcp_on);
     reg_info_dword (reg_key, REG_KEY_SER_NUM, FALSE, 0x0000102b, (DWORD*)&ruijie_live_serial_num);
 
-    /* 判断注册表记录的网卡名称和列表里面选择的是否一样，
-     * 不一样则重写注册表，同时临时禁用自动连接*/
+    /* 判断注册表记录上次的网卡名称和列表里面选择的是否一样，
+     * 不一样则临时禁用自动连接 */
     char    register_if_name[512] = {0};
     char    combo_if_name[512] = {0};
 
     reg_info_string (reg_key, REG_KEY_IF_NAME, FALSE, NULL, register_if_name, 512);
     ComboBox_GetLBText (hwndComboList, combo_index, combo_if_name);
 
-    if (strcmp(register_if_name, combo_if_name) != 0) {
-        reg_info_string (reg_key, REG_KEY_IF_NAME, TRUE, combo_if_name, NULL, 0);
+    if (strcmp(register_if_name, combo_if_name) != 0) 
         auto_con = FALSE;
-    }
 }
 
 void thread_error_exit(const char *errmsg) 
