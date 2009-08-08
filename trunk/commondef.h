@@ -50,6 +50,9 @@
 
 /* ethernet headers are always exactly 14 bytes [1] */
 #define SIZE_ETHERNET 14
+#define	OFFSET_EAPOL    0x0E			/*  */
+#define OFFSET_EAP      0x12
+
 
 struct eap_header {
     u_char eapol_v;
