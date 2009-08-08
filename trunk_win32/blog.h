@@ -28,15 +28,11 @@
 
 #include	"commondef.h"
 
-
-void
-InitializeBlog(const uint8_t *RuijieExtra);
-
 uint8_t
 Alog(uint8_t val);
 
 void
-Blog(uint8_t circleCheck[2]);
+Blog(uint8_t *RuijieExtra);
 
 uint32_t
 ruijie_byte_to_int32 (const uint8_t *array);

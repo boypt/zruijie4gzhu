@@ -53,6 +53,7 @@
 #define	OFFSET_EAPOL    0x0E			/*  */
 #define OFFSET_EAP      0x12
 
+#define ETHER_ADDR_LEN 6
 
 struct eap_header {
     u_char eapol_v;

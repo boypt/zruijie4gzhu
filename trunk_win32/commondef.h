@@ -41,6 +41,8 @@ typedef unsigned short uint16_t;
 
 /* ethernet headers are always exactly 14 bytes [1] */
 #define SIZE_ETHERNET 14
+#define OFFSET_EAPOL    0x0E                    /*  */
+#define OFFSET_EAP      0x12
 
 #define ETHER_ADDR_LEN 6
 
