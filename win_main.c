@@ -217,7 +217,7 @@ void on_button_connect_clicked (void)
     extern char      password[];
     extern int       username_length, password_length;
 
-    if (Edit_GetModify(hwndEditUser) || Edit_GetModify (hwndEditPass)) {
+    if (Edit_GetModify (hwndEditUser) || Edit_GetModify (hwndEditPass)) {
     
         username_length = GetWindowTextLength(hwndEditUser);
         password_length = GetWindowTextLength(hwndEditPass);
@@ -229,15 +229,21 @@ void on_button_connect_clicked (void)
         reg_info_string (reg_key, REG_KEY_PASS, TRUE, password, NULL, 0);
     }
     
+    /* 记录网卡设备列表序列 */
     reg_info_dword (reg_key, REG_KEY_IF_INDEX, TRUE, combo_index, NULL);
-    
+
+    /* 记录网卡设备列表名称 */    
+    char combo_if_name[512] = {0};
+    ComboBox_GetLBText (hwndComboList, combo_index, combo_if_name);
+    reg_info_string (reg_key, REG_KEY_IF_NAME, TRUE, combo_if_name, NULL, 0);
+
+    /* 禁用几个控件 */
     EnableWindow (hwndButtonConn, FALSE);
     EnableWindow (hwndEditUser, FALSE);
     EnableWindow (hwndEditPass, FALSE);
     EnableWindow (hwndComboList, FALSE);
-    
-    hEAP_THREAD = CreateThread(NULL, 0, (LPTHREAD_START_ROUTINE)eap_thread, 0, 0, 0);
 
+    hEAP_THREAD = CreateThread(NULL, 0, (LPTHREAD_START_ROUTINE)eap_thread, 0, 0, 0);
 }
 
 void on_program_quit ()
