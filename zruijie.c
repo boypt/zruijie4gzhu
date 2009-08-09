@@ -421,8 +421,8 @@ init_frames()
     /*****  EAPOL Header  *******/
     uint8_t eapol_eth_header[SIZE_ETHERNET];
     struct ether_header *eth = (struct ether_header *)eapol_eth_header;
-    memcpy (eth->ether_dhost, muticast_mac, 6);
-    memcpy (eth->ether_shost, local_mac, 6);
+    memcpy (eth->ether_dhost, muticast_mac, ETHER_ADDR_LEN);
+    memcpy (eth->ether_shost, local_mac, ETHER_ADDR_LEN);
     eth->ether_type =  htons (0x888e);
 
     /**** EAPol START ****/
