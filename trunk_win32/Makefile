@@ -21,7 +21,7 @@ all: all-before zRuijie4GZHU.exe all-after
 
 
 clean: clean-custom
-	${RM} $(OBJ) $(BIN)
+	${RM} $(OBJ) $(BIN) *~
 
 $(BIN): $(OBJ)
 	$(CC) $(LINKOBJ) -o "zRuijie4GZHU.exe" $(LIBS)

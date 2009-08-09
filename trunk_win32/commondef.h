@@ -24,15 +24,11 @@ typedef unsigned char uint8_t;
 typedef unsigned int uint32_t;
 typedef unsigned short uint16_t;
 #include <pcap.h>
-#include <string.h>
-#include <ctype.h>
-#include <errno.h>
-#include <assert.h>
 
 #include <winsock2.h>
 #include <iphlpapi.h>
-/* ZRuijie Version */
-#define ZRJ_VER "0.5"
+///* ZRuijie Version */
+//#define ZRJ_VER "0.5"
 
 #define MAX_DEV_NAME_LEN 256
 
@@ -95,20 +91,15 @@ typedef union
 
 
 /* #####   FUNCTION DEFINITIONS  -  EXPORTED FUNCTIONS   ############################ */
-/* main.c内实现的函数, 在zruijie.c调用*/
-void    daemon_init(void);
-void*   thread_wait_exit (void *arg);
-
-/* #####   FUNCTION DEFINITIONS  -  EXPORTED FUNCTIONS   ############################ */
-/* zruijie.c内实现，调用的函数**/
+/* zruijie.c内实现，
+ * win_main.c内调用*/
 void    init_frames();
-//void    init_info();
 void    init_device();
-void    show_local_info();
 void    get_packet(u_char *args, const struct pcap_pkthdr *header, 
                         const u_char *packet);
-void    print_hex(const uint8_t *array, int count);
 
+/* #####   FUNCTION DEFINITIONS  -  EXPORTED FUNCTIONS   ############################ */
+/* win_main.c内实现的函数, 全局调用*/
 void update_interface_state(const char *msg);
 void edit_info_append (const char *msg);
 void thread_error_exit (const char *errmsg);

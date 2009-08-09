@@ -76,12 +76,14 @@ action_eapol_failre(const struct eap_header *eap_head,
 		GetExitCodeThread (hLIFE_KEEP_THREAD, &code);
 		if (code == STILL_ACTIVE) {
 			TerminateThread (hLIFE_KEEP_THREAD, 0);
+            WaitForSingleObject (hLIFE_KEEP_THREAD, 1000);
 		}
 		
 		code = 0;
 		GetExitCodeThread (hEXIT_WAITER, &code);
 		if (code == STILL_ACTIVE) {
 			TerminateThread (hEXIT_WAITER, 0);
+            WaitForSingleObject (hEXIT_WAITER, 1000);
 		}
 
 		pcap_breakloop (handle);

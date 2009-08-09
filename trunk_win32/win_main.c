@@ -233,7 +233,7 @@ void on_button_connect_clicked (void)
     reg_info_dword (reg_key, REG_KEY_IF_INDEX, TRUE, combo_index, NULL);
 
     /* 记录网卡设备列表名称 */    
-    char combo_if_name[512] = {0};
+    char combo_if_name[MAX_DEV_NAME_LEN] = {0};
     ComboBox_GetLBText (hwndComboList, combo_index, combo_if_name);
     reg_info_string (reg_key, REG_KEY_IF_NAME, TRUE, combo_if_name, NULL, 0);
 
@@ -330,7 +330,9 @@ void init_combo_list()
 
 
     /* Retrieve the device list */
-    assert(pcap_findalldevs(&alldevs, errbuf) != -1);
+    if(pcap_findalldevs(&alldevs, errbuf) == -1) {
+        MessageBox (hwndDlg, "Failed Finding Device.", NULL, MB_OK);
+    }
 
     for (d = alldevs; d; d = d->next, ++i) {
         SendMessage(hwndComboList, CB_ADDSTRING, 0, (LPARAM)d->description);
@@ -448,10 +450,10 @@ void init_info()
 
     /* 判断注册表记录上次的网卡名称和列表里面选择的是否一样，
      * 不一样则临时禁用自动连接 */
-    char    register_if_name[512] = {0};
-    char    combo_if_name[512] = {0};
+    char    register_if_name[MAX_DEV_NAME_LEN] = {0};
+    char    combo_if_name[MAX_DEV_NAME_LEN] = {0};
 
-    reg_info_string (reg_key, REG_KEY_IF_NAME, FALSE, NULL, register_if_name, 512);
+    reg_info_string (reg_key, REG_KEY_IF_NAME, FALSE, NULL, register_if_name, MAX_DEV_NAME_LEN);
     ComboBox_GetLBText (hwndComboList, combo_index, combo_if_name);
 
     if (strcmp(register_if_name, combo_if_name) != 0) 
