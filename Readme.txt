@@ -2,6 +2,16 @@ zRuijie4GZHU用户手册
 
     zRuijie4GZHU是基于pcap库的跨平台（暂限Unix系列）锐捷兼容客户端，为目前广州大学大学城校区的校园网接入协议而兼容，但不限于广州大学使用，可能兼容其他部署了锐捷的环境。 
 
+快速安装与使用步骤
+    
+    1.下载适合的二进制包；
+    2.解压;
+    3.修改runruijie，填入用户名密码（替换原来的user、pass）
+    4.运行sudo ./install
+    5.运行runruijie，上网。
+
+    如果出错或需要自己定制安装位置等，请读下面的文字。
+
 程序
 
     zRuijie4GZHU包含核心程序以及用户脚本，不建议分离，但用户可自由配置。 
@@ -46,7 +56,7 @@ zRuijie4GZHU用户手册
 
         http://code.google.com/p/zruijie4gzhu/downloads/list
 
-    编译需要libpcap库，一般Linux发行版里面安装libpcap包即可，在ubuntu中，需要libpcap-dev：
+    编译需要libpcap库（默认使用/usr/lib/libpcap.a静态库，若不存在或者需要动态链接，请修改Makefile），一般Linux发行版里面安装libpcap包即可，在ubuntu中，需要libpcap-dev：
 
         sudo apt-get install libpcap-dev
 
@@ -64,7 +74,6 @@ zRuijie4GZHU用户手册
     Device:     eth0   <- 此处是否是合适的网卡设备
 
     程序还有其他的配置选项，如果设置客户端版本号等，但这些参数只是在默认不能认证是才使用的参数，具体请查看--help的内容。 
-
 
 
 
