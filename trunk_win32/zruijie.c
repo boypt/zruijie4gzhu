@@ -237,9 +237,9 @@ void init_device()
 		    memcpy(local_mac, pAdapterInfo->Address, ETHER_ADDR_LEN);
 			break;
 		}
-        else
-            thread_error_exit("Invalid Device.[NOT ]");
 	}
+    if (!pAdapterInfo)
+        thread_error_exit("No MAC Addr Found on the Selected Device.");
 	
 	/* open capture device */
 	handle = pcap_open_live(devname, SNAP_LEN, 1, 1000, errbuf);
