@@ -23,6 +23,8 @@
 #include	<pthread.h>
 #include    <unistd.h>
 
+static uint32_t
+get_ruijie_success_key (const uint8_t *success_packet);
 static char*   
 get_md5_digest(const char* str, size_t len);
 static void 
