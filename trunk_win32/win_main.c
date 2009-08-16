@@ -378,7 +378,7 @@ void reg_info_dword(LPCTSTR lpSubKey, LPCTSTR val_key, BOOL ForceWrite,
 
     DWORD dwSize;
 
-    lRet = RegCreateKeyEx(HKEY_LOCAL_MACHINE,lpSubKey,0,NULL,
+    lRet = RegCreateKeyEx(HKEY_CURRENT_USER, lpSubKey,0,NULL,
         REG_OPTION_NON_VOLATILE,KEY_ALL_ACCESS,NULL,&hKey, NULL);
     
     if(lRet == ERROR_SUCCESS){            
@@ -402,7 +402,7 @@ DWORD reg_info_string (LPCTSTR lpSubKey, LPCTSTR val_key,  BOOL write,
     DWORD qret;
     HKEY hKey;
 
-    lRet = RegCreateKeyEx(HKEY_LOCAL_MACHINE,lpSubKey,0,NULL,
+    lRet = RegCreateKeyEx(HKEY_CURRENT_USER,lpSubKey,0,NULL,
         REG_OPTION_NON_VOLATILE,KEY_ALL_ACCESS,NULL, &hKey, NULL);
     
     if(lRet == ERROR_SUCCESS){            
