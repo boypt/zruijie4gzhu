@@ -6,7 +6,7 @@ USERNAME='user'
 PASSWORD='pass'
 
 #其他参数(如--dev指定网卡，可运行zruijie -h查看详细参数)
-ARGS=""
+ARGS=(--dhcp -b)
 
 #---------------------------------------------------------------------
 LOGFILE=/tmp/zruijie.log
@@ -14,8 +14,7 @@ MSGLOG="$HOME/.ruijielog"
 
 echo "Beginning Authentication... "
 
-zruijie -u "$USERNAME" -p "$PASSWORD" --dhcp -b "$@" 2>&1|tee -i "$LOGFILE"
-#cat zrj.txt|tee "$LOGFILE"
+zruijie $@ ${ARGS[@]} -u $USERNAME -p $PASSWORD 2>&1|tee -i "$LOGFILE"
 
 program_err=`sed -n -e '/^@@ERROR/p' $LOGFILE`
 server_info=`sed -n -e '/^>>Server/p' $LOGFILE`
