@@ -1,15 +1,16 @@
 #!/bin/bash
 #用户名
-USERNAME=user
+USERNAME='user'
 
 #密码
-PASSWORD=pass
+PASSWORD='pass'
 
 #其他参数(如--dev指定网卡，可运行zruijie -h查看详细参数)
 ARGS=""
 
 #---------------------------------------------------------------------
 LOGFILE=/tmp/zruijie.log
+MSGLOG="$HOME/.ruijielog"
 
 echo "Beginning Authentication... "
 
@@ -19,7 +20,7 @@ zruijie -u "$USERNAME" -p "$PASSWORD" --dhcp -b "$@" 2>&1|tee -i "$LOGFILE"
 program_err=`sed -n -e '/^@@ERROR/p' $LOGFILE`
 server_info=`sed -n -e '/^>>Server/p' $LOGFILE`
 account_info=`sed -n -e '/^>>Account/{N;s/\n//;p}' $LOGFILE`
-#rm $LOGFILE
+
 notify(){
     notify-send "锐捷" "$1";
     if [ $? -eq 127 ]; then
@@ -33,5 +34,13 @@ for msg in "$program_err" "$server_info" "$account_info"; do
         notify "${msg##>>}"
     fi
 done
+
+if [[ -e $MSGLOG ]];then
+    lastlog=`tail -n 1 $MSGLOG|sed -e 's/^[-: 0-9]\+#//'`
+fi
+
+if [[ $server_info && $server_info != $lastlog ]]; then
+    echo "$(date '+%F %T')#$server_info">>$MSGLOG;
+fi
 
 

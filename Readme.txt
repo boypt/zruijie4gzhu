@@ -10,7 +10,7 @@ zRuijie4GZHU用户手册
     4.运行sudo ./install
     5.运行runruijie，上网。
 
-    如果出错或需要自己定制安装位置等，请读下面的文字。
+    如果有出错或需要自己定制安装位置等，请读下面的文字。
 
 程序
 
@@ -36,7 +36,7 @@ zRuijie4GZHU用户手册
 
     如果用户配置的帐号信息无误并且安装成功，那么用户只需要运行runruijie，即可看到有关的认证成功的信息。 
 
-    如果系统内安装有libnotify的工具，运行脚本时会出现如图的提示(Ubuntu中的效果，如果没有，请安装sudo apt-get libnotify-bin):[没有安装libnotify-bin虽然不能显示，但并不影响认证。]
+    如果系统内安装有libnotify的工具，运行脚本时会出现如图的提示(Ubuntu中的效果，如果没有，请安装sudo apt-get install libnotify-bin):[没有安装libnotify-bin虽然不能显示，但并不影响认证。]
 
     可以通过桌面的启动器运行runruijie，或把把runruijie加入到比如GNOME的“系统->首选项->启动程序“当中，以便每次登录系统即可自动认证上网。 
 
@@ -84,10 +84,8 @@ GMail GTalk: pentie@gmail.com
 
 项目主页： http://code.google.com/p/zruijie4gzhu/
 
-Blog: http://apt-blog.co.cc
+Blog: http://apt-blog.net
 
 Twitter: https://twitter.com/BOYPT
-
-Facebook: http://www.facebook.com/boypt
 
 2009-07-07 于广州大学城 
