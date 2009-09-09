@@ -12,7 +12,7 @@ INCS =  -I"/usr/i486-mingw32/include"  -I"WpdPack/Include"
 CXXINCS = 
 BIN  = zRuijie4GZHU.exe
 CXXFLAGS = $(CXXINCS)   -fexpensive-optimizations -O2
-CFLAGS = $(INCS)  -Wall -O1
+CFLAGS = $(INCS)  -Wall -Os
 RM = rm -f
 
 .PHONY: all all-before all-after clean clean-custom

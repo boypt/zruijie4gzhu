@@ -5,7 +5,7 @@
 #include "commondef.h"
 #include "eap_protocol.h"
 
-#define DIALOG_TITLE "zRuijie4GZHU 0.4"
+#define DIALOG_TITLE "zRuijie4GZHU 0.5"
 
 #define REG_KEY_IF_INDEX    "if_index"
 #define REG_KEY_IF_NAME     "if_name"
@@ -192,7 +192,7 @@ void InitProgram (HINSTANCE hInst)
     SendMessage(hwndDlg, WM_SETICON, ICON_BIG, (LPARAM)hIcon);
     SendMessage(hwndDlg, WM_SETICON, ICON_SMALL, (LPARAM)hIconSm);
 
-    SendMessage(hwndDlg, WM_SETTEXT, NULL, (LPARAM)DIALOG_TITLE);
+    SendMessage(hwndDlg, WM_SETTEXT, (WPARAM)NULL, (LPARAM)DIALOG_TITLE);
 
 
     /* Add icon to system tray */
@@ -234,7 +234,7 @@ void on_button_connect_clicked (void)
 
     /* 记录网卡设备列表名称 */    
     char combo_if_name[MAX_DEV_NAME_LEN] = {0};
-    ComboBox_GetLBText (hwndComboList, combo_index, combo_if_name);
+    ComboBox_GetLBText (hwndComboList, combo_index, (LPCTSTR)combo_if_name);
     reg_info_string (reg_key, REG_KEY_IF_NAME, TRUE, combo_if_name, NULL, 0);
 
     /* 禁用几个控件 */
@@ -326,7 +326,7 @@ void init_combo_list()
     pcap_addr_t     *a;
     BOOL            flag = FALSE;
     int             i = 0;
-    int             index;
+    int             index = 0;
 
 
     /* Retrieve the device list */
@@ -399,7 +399,7 @@ DWORD reg_info_string (LPCTSTR lpSubKey, LPCTSTR val_key,  BOOL write,
                               const char *def_val, char *val, DWORD val_len)
 {
     long lRet;
-    DWORD qret;
+    DWORD qret = 0;
     HKEY hKey;
 
     lRet = RegCreateKeyEx(HKEY_CURRENT_USER,lpSubKey,0,NULL,
@@ -454,7 +454,7 @@ void init_info()
     char    combo_if_name[MAX_DEV_NAME_LEN] = {0};
 
     reg_info_string (reg_key, REG_KEY_IF_NAME, FALSE, NULL, register_if_name, MAX_DEV_NAME_LEN);
-    ComboBox_GetLBText (hwndComboList, combo_index, combo_if_name);
+    ComboBox_GetLBText (hwndComboList, combo_index, (LPCTSTR)combo_if_name);
 
     if (strcmp(register_if_name, combo_if_name) != 0) 
         auto_con = FALSE;
