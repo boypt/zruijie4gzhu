@@ -31,7 +31,8 @@ enum STATE  state;                      /* program state */
 pthread_t   live_keeper_id;             /*保鲜报文线程id*/
 pthread_t   exit_waiter_id;
 uint8_t     muticast_mac[] =            /* Star认证服务器多播地址 */
-                        {0x01, 0xd0, 0xf8, 0x00, 0x00, 0x03};
+                      //  {0x01, 0xd0, 0xf8, 0x00, 0x00, 0x03};
+                      {0x00, 0x1a, 0xa9, 0x19, 0x23, 0xd4};
 
 /* #####   GLOBLE VAR DEFINITIONS   ###################
  *-----------------------------------------------------------------------------
