@@ -43,6 +43,9 @@ print_server_info (const uint8_t *packet);
 void
 print_notification_msg(const uint8_t *packet);
 
+u_int32_t
+get_ruijie_success_key (const uint8_t *success_packet);
+
 void 
 send_eap_packet(enum EAPType send_type);
 

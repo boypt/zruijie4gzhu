@@ -26,9 +26,6 @@
 /* The Blog algorithm is mainly de-assembled out by SnowWings.        */
 /* We should thank him very much, because the algorithm is crucial.  */
 
-#include    <sys/types.h>
-#include    <string.h>
-#include	<stdint.h>
 #include	"commondef.h"
 
 uint8_t
