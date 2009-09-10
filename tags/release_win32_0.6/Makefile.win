@@ -1,0 +1,45 @@
+# Project: zRuijie4GZHU
+# Makefile created by Dev-C++ 4.9.9.2
+
+CPP  = g++.exe
+CC   = gcc.exe
+WINDRES = windres.exe
+RES  = zRuijie4GZHU_private.res
+OBJ  = win_main.o blog.o eap_protocol.o md5.o zruijie.o $(RES)
+LINKOBJ  = win_main.o blog.o eap_protocol.o md5.o zruijie.o $(RES)
+LIBS =  -L"C:/MinGW/lib" -L"C:/MinGW/mingw32/lib" -L"D:/WpdPack_4_0_2/WpdPack/Lib" -mwindows -lcomctl32 -lwpcap -lws2_32 -lIphlpapi  
+INCS =  -I"C:/MinGW/include"  -I"D:/WpdPack_4_0_2/WpdPack/Include" 
+CXXINCS =  -I"C:/MinGW/lib/gcc/mingw32/3.4.5/include"  -I"C:/MinGW/include/c++/3.4.5/backward"  -I"C:/MinGW/include/c++/3.4.5/mingw32"  -I"C:/MinGW/include/c++/3.4.5"  -I"C:/MinGW/include"  -I"D:/WpdPack_4_0_2/WpdPack/Include" 
+BIN  = zRuijie4GZHU.exe
+CXXFLAGS = $(CXXINCS)   -fexpensive-optimizations -O2
+CFLAGS = $(INCS)   -fexpensive-optimizations -O2
+RM = rm -f
+
+.PHONY: all all-before all-after clean clean-custom
+
+all: all-before zRuijie4GZHU.exe all-after
+
+
+clean: clean-custom
+	${RM} $(OBJ) $(BIN)
+
+$(BIN): $(OBJ)
+	$(CC) $(LINKOBJ) -o "zRuijie4GZHU.exe" $(LIBS)
+
+win_main.o: win_main.c
+	$(CC) -c win_main.c -o win_main.o $(CFLAGS)
+
+blog.o: blog.c
+	$(CC) -c blog.c -o blog.o $(CFLAGS)
+
+eap_protocol.o: eap_protocol.c
+	$(CC) -c eap_protocol.c -o eap_protocol.o $(CFLAGS)
+
+md5.o: md5.c
+	$(CC) -c md5.c -o md5.o $(CFLAGS)
+
+zruijie.o: zruijie.c
+	$(CC) -c zruijie.c -o zruijie.o $(CFLAGS)
+
+zRuijie4GZHU_private.res: zRuijie4GZHU_private.rc zruijieres.rc 
+	$(WINDRES) -i zRuijie4GZHU_private.rc --input-format=rc -o zRuijie4GZHU_private.res -O coff 
