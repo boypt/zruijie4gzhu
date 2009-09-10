@@ -28,7 +28,7 @@ typedef unsigned short uint16_t;
 #include <winsock2.h>
 #include <iphlpapi.h>
 ///* ZRuijie Version */
-//#define ZRJ_VER "0.5"
+#define ZRJ_VER "0.6"
 
 #define MAX_DEV_NAME_LEN 256
 

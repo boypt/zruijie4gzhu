@@ -5,7 +5,7 @@
 #include "commondef.h"
 #include "eap_protocol.h"
 
-#define DIALOG_TITLE "zRuijie4GZHU 0.5"
+#define DIALOG_TITLE "zRuijie4GZHU " ZRJ_VER ".1
 
 #define REG_KEY_IF_INDEX    "if_index"
 #define REG_KEY_IF_NAME     "if_name"
