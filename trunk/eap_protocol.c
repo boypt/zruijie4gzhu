@@ -329,7 +329,7 @@ print_server_info (const uint8_t *packet)
     }
 
     /* success报文关于用户账户信息 */
-    if (0x1a48 == ntohs(*(uint16_t*)(packet + account_info_offset))) {
+    if (0x1a == *(uint8_t*)(packet + account_info_offset)) {
         msg_length = *(uint8_t*)(packet + account_info_offset + 0x07);
         msg = (char*)(packet + account_info_offset + 0x08);
         code_convert ("gb2312", "utf-8", 
