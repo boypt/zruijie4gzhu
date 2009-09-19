@@ -9,7 +9,7 @@
  *        Created:  07/06/2009 08:19:17 PM
  *       Revision:  none
  *       Compiler:  gcc
- *
+ *       File Last Modify: $Date$
  *         Author:  BOYPT (PT), pentie@gmail.com
  *        Company:  http://apt-blog.co.cc
  *
@@ -31,11 +31,6 @@
 
 #define LOCKMODE (S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH)
 
-
-/*
- * File Last Modify: $Date$
- * File Rev: $Revision$
- */
 const char revsion[] = "$Revision$";
 
 
