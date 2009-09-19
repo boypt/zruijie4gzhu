@@ -16,12 +16,6 @@
  * =====================================================================================
  */
 
-/*
- * File Last Modify: $Date$
- * File Rev: $Revision$
- * 
- * /
-
 
 #include <assert.h>
 #include <stdio.h>
@@ -36,6 +30,14 @@
 #define LOCKFILE "/var/run/zruijie.pid"
 
 #define LOCKMODE (S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH)
+
+
+/*
+ * File Last Modify: $Date$
+ * File Rev: $Revision$
+ */
+const char revsion[] = "$Revision$";
+
 
 extern pcap_t      *handle;
 extern int          exit_flag;

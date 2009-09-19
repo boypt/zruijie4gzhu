@@ -508,8 +508,9 @@ init_frames()
 void 
 show_local_info ()
 {
+    extern char revsion[];
     char    buf[32];
-    printf("##### zRuijie for GZHU ver. %s ######\n", ZRJ_VER);
+    printf("##### zRuijie for GZHU ver. %s  %s######\n", ZRJ_VER, revsion+10);
     printf("Device:     %s\n", devname);
     printf("MAC:        %02x:%02x:%02x:%02x:%02x:%02x\n",
                         local_mac[0],local_mac[1],local_mac[2],
