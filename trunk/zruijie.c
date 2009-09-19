@@ -9,6 +9,7 @@
  *        Created:  07/06/2009 08:07:12 AM
  *       Revision:  none
  *       Compiler:  gcc
+ *       File Last Modify:$Date$
  *
  *         Author:  BOYPT (PT), pentie@gmail.com
  *        Company:  http://apt-blog.co.cc
@@ -510,7 +511,7 @@ show_local_info ()
 {
     extern char revsion[];
     char    buf[32];
-    printf("##### zRuijie for GZHU ver. %s  %s######\n", ZRJ_VER, revsion+10);
+    printf("##### zRuijie for GZHU ver. %s %s######\n", ZRJ_VER, revsion);
     printf("Device:     %s\n", devname);
     printf("MAC:        %02x:%02x:%02x:%02x:%02x:%02x\n",
                         local_mac[0],local_mac[1],local_mac[2],
@@ -520,5 +521,5 @@ show_local_info ()
     printf("Gateway:    %s\n", inet_ntop(AF_INET, &local_gateway, buf, 32));
     printf("DNS:        %s\n", inet_ntop(AF_INET, &local_dns, buf, 32));
     printf("Client ver: %u.%u\n", client_ver_val[0], client_ver_val[1]);
-    printf("######################################\n");
+    printf("#####################################################\n");
 }
