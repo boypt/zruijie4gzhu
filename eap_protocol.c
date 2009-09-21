@@ -330,12 +330,12 @@ print_server_info (const uint8_t *packet)
     }
 
     /* success报文关于用户账户信息 */
-    if (0x1a == *(uint8_t*)(packet + account_info_offset)) {
-        msg_length = *(uint8_t*)(packet + account_info_offset + 0x07);
+    msg_length = *(uint8_t*)(packet + account_info_offset + 0x07);
+    if (msg_length) {
         msg = (char*)(packet + account_info_offset + 0x08);
         code_convert ("gb2312", "utf-8", 
-                    msg, msg_length,
-                    msg_buf, 1024);
+                msg, msg_length,
+                msg_buf, 1024);
         fprintf (stdout, ">>Account Info: %s\n", msg_buf);
     }
 }
