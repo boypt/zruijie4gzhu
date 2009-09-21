@@ -6,8 +6,8 @@ CC   = i486-mingw32-gcc
 WINDRES = i486-mingw32-windres
 RES  = window.res
 OBJ  = win_main.o blog.o eap_protocol.o md5.o zruijie.o $(RES)
-LINKOBJ  = win_main.o blog.o eap_protocol.o md5.o zruijie.o $(RES)
-LIBS =  -L"/usr/i486-mingw32/lib" -L"WpdPack/Lib" -mwindows -lcomctl32 -lwpcap -lws2_32 -liphlpapi  
+LINKOBJ  = $(OBJ)
+LIBS =  -L"/usr/i486-mingw32/lib" -L"WpdPack/Lib" -lcomctl32 -lwpcap -lws2_32 -liphlpapi -mwindows 
 INCS =  -I"/usr/i486-mingw32/include"  -I"WpdPack/Include"
 CXXINCS = 
 BIN  = zRuijie4GZHU.exe
@@ -17,14 +17,14 @@ RM = rm -f
 
 .PHONY: all all-before all-after clean clean-custom
 
-all: all-before zRuijie4GZHU.exe all-after
+all: all-before $(BIN) all-after
 
 
 clean: clean-custom
 	${RM} $(OBJ) $(BIN) *~
 
 $(BIN): $(OBJ)
-	$(CC) $(LINKOBJ) -o "zRuijie4GZHU.exe" $(LIBS)
+	$(CC) $(LINKOBJ) -o $(BIN) $(LIBS)
 
 win_main.o: win_main.c
 	$(CC) -c win_main.c -o win_main.o $(CFLAGS)
