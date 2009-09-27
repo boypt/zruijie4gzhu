@@ -252,7 +252,7 @@ void init_device()
 	/* Retrieve the device list */
 	if(pcap_findalldevs(&alldevs, errbuf) == -1)
 	{
-		fprintf(stderr,"Error in pcap_findalldevs: %s\n", errbuf);
+		fprintf(stderr,"FATIAL Error: pcap_findalldevs: %s\n", errbuf);
 		exit(1);
 	}
 
@@ -261,6 +261,7 @@ void init_device()
         pcap_if_t *d;
         for (d = alldevs; d; d = d->next) {
             
+            /* Skip loopback device */
             if (d->flags & PCAP_IF_LOOPBACK)
                 continue;
 
@@ -278,21 +279,27 @@ void init_device()
                 }
             }
         }
+    }
 
+    if (dev == NULL){
+        fprintf(stderr, "FATIAL ERROR: No suitable device found.\n");
+        exit(EXIT_FAILURE);
+    }
+    else {
         strcpy (devname, dev);
     }
-	
+
 	/* open capture device */
 	handle = pcap_open_live(dev, SNAP_LEN, 1, 1000, errbuf);
 
 	if (handle == NULL) {
-		fprintf(stderr, "Couldn't open device %s: %s\n", dev, errbuf);
+		fprintf(stderr, "FATIAL ERROR: Couldn't open device %s: %s\n", dev, errbuf);
 		exit(EXIT_FAILURE);
 	}
 
 	/* make sure we're capturing on an Ethernet device [2] */
 	if (pcap_datalink(handle) != DLT_EN10MB) {
-		fprintf(stderr, "%s is not an Ethernet\n", dev);
+		fprintf(stderr, "FATIAL ERROR: %s is not an Ethernet\n", dev);
 		exit(EXIT_FAILURE);
 	}
 
@@ -324,14 +331,14 @@ void init_device()
 
 	/* compile the filter expression */
 	if (pcap_compile(handle, &fp, filter_exp, 0, 0) == -1) {
-		fprintf(stderr, "Couldn't parse filter %s: %s\n",
+		fprintf(stderr, "FATIAL ERROR:Couldn't parse filter %s: %s\n",
 		    filter_exp, pcap_geterr(handle));
 		exit(EXIT_FAILURE);
 	}
 
 	/* apply the compiled filter */
 	if (pcap_setfilter(handle, &fp) == -1) {
-		fprintf(stderr, "Couldn't install filter %s: %s\n",
+		fprintf(stderr, "FATIAL ERROR:Couldn't install filter %s: %s\n",
 		    filter_exp, pcap_geterr(handle));
 		exit(EXIT_FAILURE);
 	}
