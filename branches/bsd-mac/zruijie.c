@@ -539,7 +539,7 @@ show_local_info ()
 }
 
 #ifndef __linux
-int bsd_get_mac(const char ifname[], char eth_addr[])
+static int bsd_get_mac(const char ifname[], uint8_t eth_addr[])
 {
     struct ifreq *ifrp;
     struct ifconf ifc;
