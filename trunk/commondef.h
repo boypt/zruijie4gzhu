@@ -39,6 +39,12 @@
 #include <arpa/inet.h>
 #include <net/if.h>
 #include <net/ethernet.h>
+#ifndef __linux
+//------bsd/apple mac
+    #include <net/if_var.h>
+    #include <net/if_dl.h>
+    #include <net/if_types.h>
+#endif
 
 #include <getopt.h>
 #include <iconv.h>
