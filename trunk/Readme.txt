@@ -64,6 +64,19 @@ zRuijie4GZHU用户手册
 
     make install也可完成安装，这根运行install效果基本一样，同样有make uninstall以供卸载。再次提醒安装前先修改runruijie文件内的账户信息。 
 
+    MacOS / BSD 用户编译：
+
+    Mac用户首先要安装gcc，需要从http://connect.apple.com/下载安装Xcode Tools，具体请查阅Apple Dev的信息。然后下载libpcap的源代码，http://www.tcpdump.org/release/libpcap-1.0.0.tar.gz，解压后分别运行
+    ./configure
+    make 
+    sudo make install
+
+    最后在本程序的源代码目录运行
+
+    make -f Makefile.bsd
+
+    即可生成可运行程序。安装运行参考上文Linux部分。
+
 其他
 
     当用户使用的认证网卡不是默认的第一个网卡（如eth0）时，可使用runruijie --dev eth1这样的参数方式启动程序，或者修改runruijie文件内ARGS=""，加入自定义的参数。 
@@ -74,7 +87,6 @@ zRuijie4GZHU用户手册
     Device:     eth0   <- 此处是否是合适的网卡设备
 
     程序还有其他的配置选项，如果设置客户端版本号等，但这些参数只是在默认不能认证是才使用的参数，具体请查看--help的内容。 
-
 
 
 
