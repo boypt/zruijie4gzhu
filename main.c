@@ -310,7 +310,6 @@ signal_alarm (int signo)
 int main(int argc, char **argv)
 {
     int ins_pid;
-    extern enum STATE state;
 
     init_arguments (&argc, &argv);
 
@@ -336,9 +335,9 @@ int main(int argc, char **argv)
 
     show_local_info();
 
-    state = READY;
     send_eap_packet (EAPOL_START);
     alarm(5);
+
 	pcap_loop (handle, -1, get_packet, NULL);   /* main loop */
     pcap_close (handle);
     return 0;
