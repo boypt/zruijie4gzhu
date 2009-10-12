@@ -47,3 +47,6 @@ print_notification_msg(const uint8_t *packet);
 void 
 send_eap_packet(enum EAPType send_type);
 
+void  
+keep_alive();
+

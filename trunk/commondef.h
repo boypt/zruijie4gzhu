@@ -94,7 +94,8 @@ enum STATE {
    READY,
    STARTED,
    ID_AUTHED,
-   ONLINE
+   ONLINE,
+   STATUS_ERROR
 };
 
 typedef union
@@ -107,7 +108,7 @@ typedef union
 /* #####   FUNCTION DEFINITIONS  -  EXPORTED FUNCTIONS   ############################ */
 /* main.c内实现的函数, 在zruijie.c调用*/
 void    daemon_init(void);
-void*   thread_wait_exit (void *arg);
+//void*   thread_wait_exit (void *arg);
 
 /* #####   FUNCTION DEFINITIONS  -  EXPORTED FUNCTIONS   ############################ */
 /* zruijie.c内实现，调用的函数*/
