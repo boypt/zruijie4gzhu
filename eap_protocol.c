@@ -21,7 +21,7 @@
 //#include	"zruijie.h"
 #include	"blog.h"
 #include	"md5.h"
-#include	<pthread.h>
+//#include	<pthread.h>
 #include    <unistd.h>
 
 static uint32_t
@@ -30,8 +30,6 @@ static char*
 get_md5_digest(const char* str, size_t len);
 static void 
 fill_password_md5(uint8_t attach_key[], uint8_t eap_id);
-static void*   
-keep_alive(void *arg);
 
 /* #####   TYPE DEFINITIONS   ######################### */
 /*-----------------------------------------------------------------------------
@@ -54,7 +52,7 @@ action_eapol_success(const struct eap_header *eap_head,
 {
     extern enum STATE   state;
     extern int          background;
-    extern pthread_t    live_keeper_id;
+//    extern pthread_t    live_keeper_id;
 
     state = ONLINE;
     fprintf(stdout, ">>Protocol: EAP_SUCCESS\n");
@@ -70,15 +68,8 @@ action_eapol_success(const struct eap_header *eap_head,
         daemon_init();
     }
 
-    /* 打开保持线程 */
-    if ( !live_keeper_id ) {
-        if ( pthread_create(&live_keeper_id, NULL, 
-                    keep_alive, NULL) != 0 ){
-            fprintf(stderr, "@@Fatal ERROR: "
-                            "Init Life Keeper Thread Failure.\n");
-            exit (EXIT_FAILURE);
-        }
-    }
+    /* Set alarm to send keep alive packet */
+    alarm(30);
 }
 
 void
@@ -88,9 +79,9 @@ action_eapol_failre(const struct eap_header *eap_head,
 {
     extern int          background;
     extern int          exit_flag;
-    extern pthread_t    exit_waiter_id;
+//    extern pthread_t    exit_waiter_id;
 
-    state = READY;
+    state = STATUS_ERROR;
     fprintf(stdout, ">>Protocol: EAP_FAILURE\n");
     if(state == ONLINE){
         fprintf(stdout, "&&Info: SERVER Forced Logoff\n");
@@ -108,11 +99,7 @@ action_eapol_failre(const struct eap_header *eap_head,
     }
     else{
         exit_flag = 1;
-        if (pthread_create (&exit_waiter_id, NULL,
-                    thread_wait_exit, NULL) != 0) {
-            fprintf(stderr, "@@Fatal ERROR: Thread failure.\n");
-            exit (EXIT_FAILURE);
-        }
+        alarm(1);
     }
 }
 
@@ -145,20 +132,16 @@ action_eap_req_md5_chg(const struct eap_header *eap_head,
     send_eap_packet(EAP_RESPONSE_MD5_CHALLENGE);
 }
 
-void* 
-keep_alive(void *arg)
+void
+keep_alive()
 {
-    while (1) {
-        ruijie_int32_to_byte (eap_life_keeping + 0x18, 
-                                htonl (ruijie_live_serial_num + ruijie_succes_key));
+    ruijie_int32_to_byte (eap_life_keeping + 0x18, 
+                            htonl (ruijie_live_serial_num + ruijie_succes_key));
 
-        ruijie_int32_to_byte (eap_life_keeping + 0x22, 
-                                htonl (ruijie_live_serial_num));
-        ++ruijie_live_serial_num;
-        send_eap_packet (EAP_RESPONSE_IDENTITY_KEEP_ALIVE);
-        sleep (30);
-    }
-    return (void*)0;
+    ruijie_int32_to_byte (eap_life_keeping + 0x22, 
+                            htonl (ruijie_live_serial_num));
+    ++ruijie_live_serial_num;
+    send_eap_packet (EAP_RESPONSE_IDENTITY_KEEP_ALIVE);
 }
 
 

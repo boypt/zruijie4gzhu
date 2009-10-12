@@ -17,13 +17,11 @@
  */
 
 
-#include <assert.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <signal.h>
 #include <unistd.h>
 #include <fcntl.h>
-#include <pthread.h>
 #include "commondef.h"
 #include "eap_protocol.h"
 
@@ -38,6 +36,7 @@ extern pcap_t      *handle;
 extern int          exit_flag;
 
 int                 lockfile;                  /* 锁文件的描述字 */
+static uint8_t      exit_counter = 10;
 
 void
 flock_reg ()
@@ -57,9 +56,9 @@ flock_reg ()
     }
  
     //把pid写入锁文件
-    assert (0 == ftruncate (lockfile, 0) );    
+    ftruncate (lockfile, 0);    
     sprintf (buf, "%ld", (long)getpid());
-    assert (-1 != write (lockfile, buf, strlen(buf) + 1));
+    write (lockfile, buf, strlen(buf) + 1);
 }
 
 
@@ -76,7 +75,7 @@ daemon_init(void)
 		exit(EXIT_SUCCESS);
     }
 	setsid();		/* become session leader */
-	assert (0 == chdir("/tmp"));		/* change working directory */
+	chdir("/tmp");		/* change working directory */
 	umask(0);		/* clear our file mode creation mask */
     flock_reg ();
 
@@ -280,24 +279,38 @@ signal_interrupted (int signo)
     send_eap_packet(EAPOL_LOGOFF);
 }
 
-void *
-thread_wait_exit (void *arg)
+static void
+signal_alarm (int signo)
 {
-    int i = 10;
-    do {
-        fprintf(stdout, "Please wait until session ends ... %2d\r", i);
-        fflush (stdout);
-        sleep (1);
-    }while (i--);
-    fprintf(stdout, "\n&&Info: Program Exit.         \n");
-    pcap_breakloop (handle);
-    return ((void*)0);
+    extern enum STATE state;
+    extern char dev_if_name[];
+    if (state == STARTED) {
+        fprintf(stderr, "\n&&Error: Packet sent but no reply. Please check network link to adapter %s.\n", dev_if_name);
+        pcap_breakloop (handle);
+    }
+    else if (state == STATUS_ERROR) {
+        if (exit_counter) {
+            exit_counter--;
+            fprintf(stdout, "Please wait until session ends ... %2d\r", exit_counter);
+            fflush (stdout);
+            alarm(1);
+        }
+        else {
+            fprintf(stdout, "\n&&Info: Program Exit.         \n");
+            pcap_breakloop (handle);
+        }
+    }
+    else if (state == ONLINE) {
+        keep_alive();
+        alarm(30);
+    }
 }
 
 
 int main(int argc, char **argv)
 {
     int ins_pid;
+    extern enum STATE state;
 
     init_arguments (&argc, &argv);
 
@@ -318,10 +331,14 @@ int main(int argc, char **argv)
     init_frames ();
 
     signal (SIGINT, signal_interrupted);
-    signal (SIGTERM, signal_interrupted);    
+    signal (SIGTERM, signal_interrupted);
+    signal (SIGALRM, signal_alarm);
+
     show_local_info();
 
+    state = READY;
     send_eap_packet (EAPOL_START);
+    alarm(5);
 	pcap_loop (handle, -1, get_packet, NULL);   /* main loop */
     pcap_close (handle);
     return 0;
