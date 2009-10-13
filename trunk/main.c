@@ -284,25 +284,33 @@ signal_alarm (int signo)
 {
     extern enum STATE state;
     extern char dev_if_name[];
-    if (state == STARTED) {
-        fprintf(stderr, "\n&&Error: Packet sent but no reply. Please check network link to adapter %s.\n", dev_if_name);
-        pcap_breakloop (handle);
-    }
-    else if (state == STATUS_ERROR) {
-        if (exit_counter) {
-            exit_counter--;
-            fprintf(stdout, "Please wait until session ends ... %2d\r", exit_counter);
-            fflush (stdout);
-            alarm(1);
-        }
-        else {
-            fprintf(stdout, "\n&&Info: Program Exit.         \n");
+
+    switch (state) {
+        case ONLINE:
+            keep_alive();
+            alarm(30);
+            break;
+
+        case STARTED:
+            fprintf(stderr, "\n&&Error: Packet sent but no reply. Please check network link to %s.\n", dev_if_name);
             pcap_breakloop (handle);
-        }
-    }
-    else if (state == ONLINE) {
-        keep_alive();
-        alarm(30);
+            break;
+
+        case STATUS_ERROR:
+            if (exit_counter) {
+                exit_counter--;
+                fprintf(stdout, "Please wait until session ends ... %2d\r", exit_counter);
+                fflush (stdout);
+                alarm(1);
+            }
+            else {
+                fprintf(stdout, "\n&&Info: Program Exit.         \n");
+                pcap_breakloop (handle);
+            }
+            break;
+
+        default:
+            break;
     }
 }
 
