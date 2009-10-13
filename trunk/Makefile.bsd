@@ -1,5 +1,5 @@
 CC = gcc
-LIBS = /usr/lib/libpcap.a -lpthread -liconv
+LIBS = /usr/lib/libpcap.a -liconv
 CFLAGS = -Wall -g -O2
 INC_DIR=/usr/local/include
 LINK_DIR=/usr/local/lib
