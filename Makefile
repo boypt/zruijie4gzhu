@@ -72,7 +72,7 @@ GLOBAL_INC_DIR  =
 LOCAL_INC_DIR   = 
 
 # ------------  system libraries  (e.g. -lm )  ---------------------------------
-SYS_LIBS        = /usr/lib/libpcap.a #-lpthread
+SYS_LIBS        = /usr/lib/libpcap.a
 
 # ------------  additional system library directories  -------------------------
 GLOBAL_LIB_DIR  =
