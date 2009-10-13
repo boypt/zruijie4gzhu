@@ -1,0 +1,31 @@
+CC = gcc
+LIBS = /usr/lib/libpcap.a -liconv
+CFLAGS = -Wall -g -O2
+INC_DIR=/usr/local/include
+LINK_DIR=/usr/local/lib
+
+OBJ  = main.o blog.o eap_protocol.o md5.o zruijie.o 
+.PHONY: all
+all: zruijie
+
+zruijie: $(OBJ)
+	$(CC) $(CFLAGS) -o $@ $(OBJ) $(LIBS) -I$(INC_DIR) -L$(LINK_DIR)
+
+main.o : main.c
+	$(CC) $(CFLAGS) -c $< -I$(INC_DIR)
+
+md5.o	: md5.c md5.h
+	$(CC) $(CFLAGS) -c $< -I$(INC_DIR)
+
+blog.o : blog.c blog.h
+	$(CC) $(CFLAGS) -c $< -I$(INC_DIR)
+
+eap_protocol.o : eap_protocol.c eap_protocol.h
+	$(CC) $(CFLAGS) -c $< -I$(INC_DIR)
+
+
+zruijie.o : zruijie.c
+	$(CC) $(CFLAGS) -c $< -I$(INC_DIR)
+	
+clean :
+	rm -v $(OBJ) zruijie
