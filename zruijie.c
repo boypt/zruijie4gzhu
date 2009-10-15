@@ -258,24 +258,26 @@ void init_device()
 
     /* 使用第一块设备 */
     if(dev == NULL) {
-        pcap_if_t *d;
+        char        flag = 0;
+        pcap_if_t   *d;
         for (d = alldevs; d; d = d->next) {
-            
+
             /* Skip loopback device */
+            if (flag) 
+                break;
             if (d->flags & PCAP_IF_LOOPBACK)
                 continue;
 
             pcap_addr_t *a;
-            char flag = 0;
             for(a = d->addresses; a; a=a->next) {
 
-                if (flag) break;
                 /* Get IP ADDR and MASK */
                 if (a->addr->sa_family == AF_INET) {
                     local_ip = ((struct sockaddr_in *)a->addr)->sin_addr.s_addr;
                     local_mask = ((struct sockaddr_in *)a->netmask)->sin_addr.s_addr;
                     dev = d->name;
                     flag = 1;
+                    break;
                 }
             }
         }
