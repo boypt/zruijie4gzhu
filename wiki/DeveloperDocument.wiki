@@ -1,4 +1,4 @@
-#labels Phase-Implementation,Phase-Support
+#labels Phase-Implementation,Phase-Support,Featured
 #如何编译、修改本开源项目
 
 = 介绍 =
