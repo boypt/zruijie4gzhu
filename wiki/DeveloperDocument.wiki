@@ -1,0 +1,97 @@
+#labels Phase-Implementation,Phase-Support
+#如何编译、修改本开源项目
+
+= 介绍 =
+开源项目的特色是用户和开发者之间并没有明显的界限，用户可以通过获取和修改源代码，并向作者提交补丁来不断完善项目。
+
+
+
+= 获取代码 =
+
+本项目源码使用Google Code提供的SVN服务存放，可通过[../../source/checkout Source->Checkout]页面得到相关提示。
+
+== 获取适合您所用系统的SVN工具（Subversion） ==
+
+[http://subversion.tigris.org/links.html#clients Subversion官方页面]有大多数svn工具的介绍及相关链接。
+
+推荐：
+  * Linux平台：subversion 【多数发行版都自带，如ubuntu，使用`sudo apt-get install subversion`安装】
+  * Windows平台：tortoisesvn 【下载： http://tortoisesvn.net/downloads】
+  * MacOS平台：svnX 【下载： http://code.google.com/p/svnx/】
+
+SVN工具大多数都能跨平台使用，以上只是个别推荐。
+
+
+
+== 获取本项目源代码 ==
+
+=== 主干代码 ===
+
+查看[../../source/checkout Checkout]页面；win版本的代码在branches/win32内
+
+例如需要checkout神州数码主干版本的代码，运行：
+{{{
+svn checkout http://zdcclient.googlecode.com/svn/trunk zdcclient
+}}}
+
+=== Tag版本代码 ===
+
+Tag内是各个release的版本的固定代码，通常相对稳定，但不一定能正常工作。
+
+请先查看[../../source/browse/tags Tags]内的版本标记；
+
+例如需要checkout神州数码0.7版本的代码，运行：
+{{{
+svn checkout http://zdcclient.googlecode.com/svn/tags/release_0.7 zdcclient
+}}}
+
+
+= 编译代码 =
+
+== 安装GCC ==
+
+  * Linux： GCC包含在多数Linux发行版内，此处不详；
+  * MacOS： 下载安装Xcode Tools；
+  * Windows： 下载安装mingw，注意安装make；
+
+
+== 安装依赖库libpcap ==
+
+本项目使用了libpcap库，编译时需要先安装。libpcap库是适用于链路层网络网络报文抓取和发送的开源库，其主页：http://www.tcpdump.org/
+
+libpcap包含在多数的Linux/Unix发行版中，如ubuntu，可以通过`sudo apt-get install libpcap-dev`安装编译本项目所需的文件。 
+
+Windows下需要下载相对于win版本，winpcap的开发包，把解压目录放于源码目录下可编译；
+
+在其他系统，如MacOS，可能需要使用源代码编译libpcap：
+  # [http://www.tcpdump.org/release/libpcap-1.0.0.tar.gz 下载]libpcap源码，并解压；
+  # 在libpcap的源码解压目录内依次运行
+{{{
+./configure
+make
+make install  #此步需要root权限运行
+}}}
+
+
+
+== 编译本项目源码 ==
+
+编译完成生成可执行文件，可按UserManual的安装方法安装使用本程序。
+
+=== Linux ===
+进入从svn签出代码的目录，运行`make`，即可编译；
+=== Windows ===
+进入从svn签出代码的目录，运行`make`，即可编译；
+=== MacOS/BSD ===
+对于MacOS/BSD系列操作系统，有单独的Makefile.bsd文件，运行make -f Makefile.bsd，即可编译；
+
+
+
+
+= 修改代码并提交补丁 =
+
+修改代码并提交补丁是非常欢迎的。
+
+从SVN签出的代码，用户可根据自己的需要修改，重新编译后即可使用，如果希望将修改提交给项目作者，可在代码目录下运行：`svn diff > my.patch`
+
+将会生成my.patch补丁文件，将该文件通过电子邮件发给作者，欢迎跟作者讨论代码问题。
