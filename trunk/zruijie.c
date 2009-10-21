@@ -263,8 +263,6 @@ void init_device()
         for (d = alldevs; d; d = d->next) {
 
             /* Skip loopback device */
-            if (flag) 
-                break;
             if (d->flags & PCAP_IF_LOOPBACK)
                 continue;
 
@@ -279,7 +277,9 @@ void init_device()
                     flag = 1;
                     break;
                 }
-            }
+            }            
+            if (flag) 
+                break;
         }
     }
 

@@ -292,7 +292,8 @@ signal_alarm (int signo)
             break;
 
         case STARTED:
-            fprintf(stderr, "\n&&Error: Packet sent but no reply. Please check network link to %s.\n", dev_if_name);
+            fprintf(stderr, "\n&&Error: Packet sent but no reply. \n"
+                              "         Please check network link to %s.\n\n", dev_if_name);
             pcap_breakloop (handle);
             break;
 
@@ -343,8 +344,8 @@ int main(int argc, char **argv)
 
     show_local_info();
 
-    send_eap_packet (EAPOL_START);
     alarm(5);
+    send_eap_packet (EAPOL_START);
 
 	pcap_loop (handle, -1, get_packet, NULL);   /* main loop */
     pcap_close (handle);
