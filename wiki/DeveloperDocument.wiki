@@ -16,8 +16,8 @@
 
 推荐：
   * Linux平台：subversion 【多数发行版都自带，如ubuntu，使用`sudo apt-get install subversion`安装】
-  * Windows平台：tortoisesvn 【下载： http://tortoisesvn.net/downloads】
-  * MacOS平台：svnX 【下载： http://code.google.com/p/svnx/】
+  * Windows平台：tortoisesvn 【下载： http://tortoisesvn.net/downloads 】
+  * MacOS平台：svnX 【下载： http://code.google.com/p/svnx/ 】
 
 SVN工具大多数都能跨平台使用，以上只是个别推荐。
 
@@ -27,7 +27,7 @@ SVN工具大多数都能跨平台使用，以上只是个别推荐。
 
 === 主干代码 ===
 
-查看[../../source/checkout Checkout]页面；win版本的代码在branches/win32内
+查看[../../source/checkout Source->Checkout]页面；win版本的代码在branches/win32内
 
 例如需要checkout神州数码主干版本的代码，运行：
 {{{
