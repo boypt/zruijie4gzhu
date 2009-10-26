@@ -1,13 +1,13 @@
 #!/bin/bash
 INSTALL_PATH=/usr/bin
 
-if [ `id -u` -ne 0 ]
+if [[ `id -u` -ne 0 ]]
 then
     echo "Need to be ROOT to run install."
     exit 1
 fi
 
-if [ $# -eq 1 ]
+if [[ $# -eq 1 && -d $1 ]]
 then
     INSTALL_PATH=$1
 fi

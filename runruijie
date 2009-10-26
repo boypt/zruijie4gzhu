@@ -14,7 +14,7 @@ MSGLOG="$HOME/.ruijielog"
 
 echo "Beginning Authentication... "
 
-zruijie $@ ${ARGS[@]} -u $USERNAME -p $PASSWORD 2>&1|tee -i "$LOGFILE"
+echo $PASSWORD|zruijie $@ ${ARGS[@]} -u $USERNAME 2>&1|tee -i "$LOGFILE"
 
 program_err=`sed -n -e '/^@@ERROR/p' $LOGFILE`
 server_info=`sed -n -e '/^>>Server/p' $LOGFILE`
