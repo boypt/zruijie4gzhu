@@ -181,7 +181,7 @@ void init_info()
 {
     extern uint32_t  ruijie_live_serial_num;
     if(username == NULL || password == NULL){
-        fprintf (stderr,"Error: NO Username or Password promoted.\n"
+        fprintf (stderr,"Error: NO Username or Password prompted.\n"
                         "Try zdclient --help for usage.\n");
         exit(EXIT_FAILURE);
     }
