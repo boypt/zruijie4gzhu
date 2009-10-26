@@ -38,7 +38,7 @@ extern int          exit_flag;
 int                 lockfile;                  /* 锁文件的描述字 */
 static uint8_t      exit_counter = 10;
 
-void
+static void
 flock_reg ()
 {
     char buf[16];
@@ -87,8 +87,8 @@ daemon_init(void)
 }
 
 
-int 
-program_running_check()
+static int 
+is_running()
 {
     struct flock fl;
     fl.l_start = 0;
@@ -123,7 +123,7 @@ program_running_check()
     return fl.l_pid;
 }
 
-void
+static void
 show_usage()
 {
     printf( "\n"
@@ -179,7 +179,8 @@ show_usage()
  *  Description:  初始化和解释命令行的字符串。getopt_long
  * =====================================================================================
  */
-void init_arguments(int *argc, char ***argv)
+static void 
+init_arguments(int *argc, char ***argv)
 {
     extern int         dhcp_on;               /* DHCP 模式标记 */
     extern int         background;            /* 后台运行标记  */
@@ -340,9 +341,9 @@ int main(int argc, char **argv)
         exit(EXIT_FAILURE);
     }
 
-    if ( (ins_pid = program_running_check ()) ) {
-        fprintf(stderr,"@@ERROR: zRuijie Already "
-                            "Running with PID %d\n", ins_pid);
+    if ( (ins_pid = is_running()) ) {
+        fprintf(stderr,"@@ERROR: Program already "
+                            "running with PID %d\n", ins_pid);
         exit(EXIT_SUCCESS);
     }
     init_info();
