@@ -192,6 +192,8 @@ void init_arguments(int *argc, char ***argv)
     extern char        *user_ip;
     extern char        *user_mask;
     extern char        *client_ver;         /* 报文协议版本号 */
+
+    static char        pass_static_buf[64];
     /* Option struct for progrm run arguments */
     static struct option long_options[] =
         {
@@ -264,7 +266,16 @@ void init_arguments(int *argc, char ***argv)
                 fprintf (stderr,"Unknown option character `\\x%x'.\n", c);
                 exit(EXIT_FAILURE);
         }
-    }    
+    }
+    if (username != NULL && password == NULL) {
+        fprintf (stdout, "Password:");
+        fgets (pass_static_buf, sizeof(pass_static_buf), stdin);
+        
+        char *line;
+        if ((line = strrchr (pass_static_buf, '\n')))
+            *line = '\0';
+        password = pass_static_buf;
+    }
 }
 
 

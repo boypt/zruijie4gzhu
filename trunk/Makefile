@@ -43,7 +43,7 @@ CXX             := g++
 
 # ------------  compiler flags  ------------------------------------------------
 DEBUG_CFLAGS    := -Wall -O0 -g
-RELEASE_CFLAGS  := -Wall -O3
+RELEASE_CFLAGS  := -Wall -O2
 
 # ------------  linker flags  --------------------------------------------------
 DEBUG_LDFLAGS    := -g
