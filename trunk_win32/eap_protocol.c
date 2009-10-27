@@ -277,8 +277,8 @@ print_server_info (const uint8_t *packet)
     }
 
     /* success报文关于用户账户信息 */
-    if (0x1a48 == ntohs(*(uint16_t*)(packet + account_info_offset))) {
-        msg_length = *(uint8_t*)(packet + account_info_offset + 0x07);
+    msg_length = *(uint8_t*)(packet + account_info_offset + 0x07);
+    if (msg_length) {    
         msg = (char*)(packet + account_info_offset + 0x08);
 		memset (msg_buf, 0, 1024);
 		snprintf (msg_buf, msg_length + 1, "%s\n", msg);
