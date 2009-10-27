@@ -2,7 +2,7 @@
 = zRuijie4GZHU用户手册 =
 		zRuijie4GZHU是基于pcap库的跨平台（暂限Unix系列）锐捷兼容客户端，为目前广州大学大学城校区的校园网接入协议而兼容，但不限于广州大学使用，可能兼容其他部署了锐捷的环境。 
 
-= 快速安装与使用步骤 =
+== 快速安装与使用步骤 ==
 
     # 下载适合的二进制包；
     # 解压;
@@ -15,7 +15,7 @@
     若想在每次登录看到服务器发来的信息，需要安装notify-send；［请看以下“运行”一节］
     服务器信息会按日期记录在~/.ruijielog文件中。
 
-= 程序 =
+== 程序 ==
 
     zRuijie4GZHU包含核心程序以及用户脚本，不建议分离，但用户可自由配置。
 
@@ -23,7 +23,7 @@
   * 安装脚本：install
   * 运行脚本：runruijie
 
-= 安装 =
+== 安装 ==
 
     在安装前，请用户先编辑运行脚本文件runruijie，将其中的username和password分别修改成您的帐号和密码并保存。
 
@@ -39,7 +39,7 @@ sudo ./install
 
     如果忘记修改runruijie而运行了安装，没关系，再次安装即可。完成安装后，解压目录可以删除。
 
-= 运行 =
+== 运行 ==
 
     如果用户配置的帐号信息无误并且安装成功，那么用户只需要运行`runruijie`，即可看到有关的认证成功的信息，并能顺利上网。
 
@@ -49,32 +49,19 @@ sudo ./install
 
     唯一需要注意的是，如果出现账户信息出错、欠费等情况，程序会给出终止提示，此时有约10秒的session终结期，当然用户可以Ctrl + C马上终结程序，但是*在session终结之前再次进行任何认证，都不能成功的*。
 
-= 终止 =
+== 终止 ==
 
     用户执行一次｀runruijie -l`，即可成功离线。
 
 
-= 编译 =
+== 编译 ==
 
-    用户可通过svn获得最新的开发代码：
-    {{{
-    svn checkout http://zruijie4gzhu.googlecode.com/svn/trunk/ zruijie4gzhu
-    }}}
+    请查看DeveloperDocument.
+
+
+== 其他 ==
     
-    或者从项目主页下载版本代码包并自行解压。
-    
-    编译需要libpcap库，一般Linux发行版里面安装libpcap包即可，在ubuntu中，需要libpcap-dev： 
-    {{{
-    sudo apt-get install libpcap-dev
-    }}}
-
-    从命令行进入源代码目录，运行`make`，应该很快就能生成zruijie，当然前提是系统中安装了gcc等编译环境，这里不再累赘。
-
-    make install可完成安装，这跟运行install效果一样，同样有make uninstall以供卸载。再次提醒安装前先修改runruijie的账户信息。
-
-= 其他 =
-    
-    当用户使用的认证网卡不是默认的第一个网卡（如eth0）时，可使用`runruijie --dev eth1`这样的参数方式启动程序，或者修改`runruijie`文件内ARGS=""，改成ARGS="--dev eth1"。
+    当用户使用的认证网卡不是默认的第一个网卡（如eth0）时，可使用如`runruijie --dev eth1`这样的参数方式启动程序，或者修改`runruijie`文件内ARGS=""，改成ARGS="--dev eth1"。
 
     如果发现不能完成认证，请留意认证过程的提示：
 
