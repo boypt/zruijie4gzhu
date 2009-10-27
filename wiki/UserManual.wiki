@@ -1,7 +1,19 @@
-#labels Featured,Phase-Support
+﻿#labels Featured,Phase-Support
 = zRuijie4GZHU用户手册 =
+		zRuijie4GZHU是基于pcap库的跨平台（暂限Unix系列）锐捷兼容客户端，为目前广州大学大学城校区的校园网接入协议而兼容，但不限于广州大学使用，可能兼容其他部署了锐捷的环境。 
 
-    zRuijie4GZHU是基于pcap库的跨平台锐捷兼容客户端，为目前广州大学大学城校区的校园网接入协议而兼容，但不限于广州大学使用，可能兼容其他部署了锐捷的环境。
+= 快速安装与使用步骤 =
+
+    # 下载适合的二进制包；
+    # 解压;
+    # 修改runruijie，填入用户名密码（替换原来的user、pass）
+    # 运行sudo ./install
+    # 运行runruijie，上网。
+
+    如果有出错或需要自己定制安装位置等，请读下面的文字。
+
+    若想在每次登录看到服务器发来的信息，需要安装notify-send；［请看以下“运行”一节］
+    服务器信息会按日期记录在~/.ruijielog文件中。
 
 = 程序 =
 

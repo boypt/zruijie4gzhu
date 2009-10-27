@@ -1,4 +1,4 @@
-#labels Phase-Implementation,Phase-Support,Featured
+﻿#labels Phase-Implementation,Phase-Support,Featured
 #如何编译、修改本开源项目
 
 = 介绍 =
@@ -27,11 +27,11 @@ SVN工具大多数都能跨平台使用，以上只是个别推荐。
 
 === 主干代码 ===
 
-查看[../../source/checkout Source->Checkout]页面；win版本的代码在branches/win32内
+查看[../../source/checkout Source] Checkout 页面；win版本的代码在branches/win32内
 
-例如需要checkout神州数码主干版本的代码，运行：
+例如需要checkout主干版本的代码，运行：
 {{{
-svn checkout http://zdcclient.googlecode.com/svn/trunk zdcclient
+svn checkout http://.......?.?..googlecode.com/svn/trunk my_src
 }}}
 
 === Tag版本代码 ===
