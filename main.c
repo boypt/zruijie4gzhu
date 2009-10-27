@@ -5,7 +5,7 @@
  *
  *    Description:  
  *
- *        Version:  1.0
+ *        Version:  $Revision$
  *        Created:  07/06/2009 08:19:17 PM
  *       Revision:  none
  *       Compiler:  gcc
@@ -29,7 +29,6 @@
 
 #define LOCKMODE (S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH)
 
-const char revsion[] = "$Revision$";
 
 
 extern pcap_t      *handle;
@@ -109,7 +108,7 @@ is_running()
             fprintf (stdout, "&&Info: Kill Signal Sent to PID %d.\n", fl.l_pid);
         }
         else 
-            fprintf (stderr, "&&Info: NO zRuijie Running.\n");
+            fprintf (stderr, "&&Info: Program not running.\n");
         exit (EXIT_FAILURE);
     }
 
@@ -268,9 +267,11 @@ init_arguments(int *argc, char ***argv)
                 exit(EXIT_FAILURE);
         }
     }
-    if (username != NULL && password == NULL) {
+    //通过stdin读入密码
+    if (username != NULL && password == NULL && !exit_flag) {
         fprintf (stdout, "Password:");
         fgets (pass_static_buf, sizeof(pass_static_buf), stdin);
+        fprintf (stdout, "\n");
         
         char *line;
         if ((line = strrchr (pass_static_buf, '\n')))
