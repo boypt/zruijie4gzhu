@@ -305,8 +305,8 @@ signal_alarm (int signo)
             break;
 
         case STARTED:
-            fprintf(stderr, "\n&&Error: Packet sent but no reply. \n"
-                              "         Please check network link to %s.\n\n", dev_if_name);
+            fprintf(stderr, "@@ERROR: Packet sent but no reply. "
+                            "Please check adapter %s link status.\n", dev_if_name);
             pcap_breakloop (handle);
             break;
 
