@@ -256,9 +256,8 @@ void init_device()
 		exit(1);
 	}
 
-    /* 使用第一块设备 */
+    /* 自动选择第一块设备 */
     if(dev == NULL) {
-        char        flag = 0;
         pcap_if_t   *d;
         for (d = alldevs; d; d = d->next) {
 
@@ -266,25 +265,24 @@ void init_device()
             if (d->flags & PCAP_IF_LOOPBACK)
                 continue;
 
+            dev = d->name;
+
+            /* Get IP ADDR and MASK (if there are)*/
             pcap_addr_t *a;
             for(a = d->addresses; a; a=a->next) {
 
-                /* Get IP ADDR and MASK */
                 if (a->addr->sa_family == AF_INET) {
                     local_ip = ((struct sockaddr_in *)a->addr)->sin_addr.s_addr;
                     local_mask = ((struct sockaddr_in *)a->netmask)->sin_addr.s_addr;
-                    dev = d->name;
-                    flag = 1;
                     break;
                 }
-            }            
-            if (flag) 
-                break;
+            }
+            break;
         }
     }
 
     if (dev == NULL){
-        fprintf(stderr, "FATIAL ERROR: No suitable device found.\n");
+        fprintf(stderr, "FATIAL ERROR: No suitable device found. Use --dev to select one. \n");
         exit(EXIT_FAILURE);
     }
     else {
@@ -305,7 +303,7 @@ void init_device()
 		exit(EXIT_FAILURE);
 	}
 
-#ifdef __linux
+#ifdef SIOCGIFHWADDR
 
     /* get device basic infomation */
     struct ifreq ifr;
@@ -539,7 +537,7 @@ show_local_info ()
     printf("######################################\n");
 }
 
-#ifndef __linux
+#ifndef SIOCGIFHWADDR
 static int bsd_get_mac(const char ifname[], uint8_t eth_addr[])
 {
     struct ifreq *ifrp;
