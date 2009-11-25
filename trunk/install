@@ -1,10 +1,14 @@
 #!/bin/bash
 INSTALL_PATH=/usr/bin
 
-if [[ `id -u` -ne 0 ]]
-then
+if [[ `id -u` -ne 0 ]]; then
     echo "Need to be ROOT to run install."
-    exit 1
+    if [[ `which gksu >/dev/null` -ne 0 ]]; then
+        echo 'use `sudo` or `su -c` to switch to root.'
+        exit 1
+    fi
+    gksu $0
+    exit 0
 fi
 
 if [[ $# -eq 1 && -d $1 ]]
@@ -18,6 +22,7 @@ then
     install -v -m 4755 -o root zruijie $INSTALL_PATH
     install -v -m 0755 -o root runruijie $INSTALL_PATH
     echo $'\n#### Installation Done. ####\n'
+    zenity --info --text="Installation Done. \n\nFiles installed to $INSTALL_PATH"
 else
     echo $'\n#### Execute files `zruijie\' or `runruijie\' NOT Found. ####\n'
     echo $'     Did you forget `make\'?\n\n'

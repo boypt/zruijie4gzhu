@@ -301,7 +301,7 @@ print_server_info (const uint8_t *packet)
 
     msg_length = ntohs(*(uint16_t*)(packet + 0x1a));
     empty_length = ntohs(*(uint16_t*)(packet + 0x1c + msg_length + 0x04));
-    account_info_offset = 0x1c + msg_length + 0x06 + empty_length + 0x12 + 0x09;
+    account_info_offset = 0x1c + msg_length + 0x06 + empty_length + 0x12 + 0x09 + 0x13;
 
     /* success和failure报文系统信息的固定位置 */
     if (msg_length) {
@@ -313,9 +313,9 @@ print_server_info (const uint8_t *packet)
     }
 
     /* success报文关于用户账户信息 */
-    msg_length = *(uint8_t*)(packet + account_info_offset + 0x07);
+    msg_length = *(uint8_t*)(packet + account_info_offset);
     if (msg_length) {
-        msg = (char*)(packet + account_info_offset + 0x08);
+        msg = (char*)(packet + account_info_offset + 1);
         code_convert ("gb2312", "utf-8", 
                 msg, msg_length,
                 msg_buf, 1024);
